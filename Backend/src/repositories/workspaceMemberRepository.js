@@ -1,4 +1,4 @@
-const WorkspaceMember = require("../models/WorkspaceMember");
+const WorkspaceMember = require("../models/WorkspaceMember.model.js");
 
 const createWorkspaceMember = async (
   memberData,

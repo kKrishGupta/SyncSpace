@@ -3,7 +3,7 @@ const express = require("express");
 const projectController =
   require("../controllers/projectController");
 
-const validate = require("../middleware/validate");
+// const validate = require("../middleware/validate");
 
 const {
   createProjectSchema,
@@ -19,7 +19,7 @@ router.get(
 
 router.post(
   "/workspaces/:id/projects",
-  validate(createProjectSchema),
+  // validate(createProjectSchema),
   projectController.createProject
 );
 
@@ -30,7 +30,7 @@ router.get(
 
 router.patch(
   "/projects/:id",
-  validate(updateProjectSchema),
+  // validate(updateProjectSchema),
   projectController.updateProject
 );
 

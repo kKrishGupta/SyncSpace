@@ -5,14 +5,14 @@ import {
 } from "react-router-dom";
 
 import AppLayout from "../layouts/AppLayout";
-
+import ProjectDetail from "../pages/ProjectDetail";
 import Dashboard from "../pages/Dashboard";
 import MyTasks from "../pages/MyTasks";
 import Projects from "../pages/Projects";
 import Teams from "../pages/Teams";
 import Members from "../pages/Members";
 import Settings from "../pages/Settings";
-
+import Workspace from "../pages/Workspace";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -47,6 +47,15 @@ const AppRoutes = () => {
         <Route
           path="/settings"
           element={<Settings />}
+        />
+        <Route
+          path="/workspace/:id"
+          element={<Workspace />}
+        />
+
+        <Route
+          path="/projects/:id"
+          element={<ProjectDetail />}
         />
 
       </Route>

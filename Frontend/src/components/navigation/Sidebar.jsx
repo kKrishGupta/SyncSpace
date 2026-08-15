@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-
+import WorkspaceSelector from "./WorkspaceSelector";
+import logo from "../../assests/logo.png";
 const Sidebar = ({ open, onClose }) => {
   return (
     <>
@@ -20,20 +21,18 @@ const Sidebar = ({ open, onClose }) => {
         <div className="sidebar-header">
 
           <div className="brand">
-            <div className="brand-logo">
-              S
-            </div>
-
-            <div>
-              <div className="brand-name">
-                SyncSpace
-              </div>
-
-              <div className="brand-subtitle">
-                Collaboration
-              </div>
-            </div>
+          <div className="brand-logo">
+            <img
+              src={logo}
+              alt="SyncSpace Logo"
+            />
           </div>
+
+          <div className="brand-copy">
+            <div className="brand-name">SyncSpace</div>
+            <div className="brand-subtitle">Collaboration</div>
+          </div>
+        </div>
 
           <button
             className="sidebar-close"
@@ -44,6 +43,8 @@ const Sidebar = ({ open, onClose }) => {
 
         </div>
 
+{/* WorkSpace Selector */}
+        <WorkspaceSelector />
 
         {/* Navigation */}
         <nav className="sidebar-nav">

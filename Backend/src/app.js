@@ -4,20 +4,33 @@ const cors = require('cors');
 const helmet = require('helmet');
 const pinoHttp = require('pino-http');
 const logger = require('./utils/logger');
+const devIdentity = require('./middleware/devIdentity');
+const workspaceRoutes = require('./routes/workspaceRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 
 // security middleware 
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 // pino http logger middleware
 app.use(pinoHttp({ logger }));
-
+app.use(devIdentity);
 // health check endpoint
 app.get('/health',(req,res) =>{
   res.status(200).json({status: 'success', message: 'SyncSpace API is running'});
 });
+
+// routes
+app.use('/api/v1', workspaceRoutes);
+app.use('/api/v1', projectRoutes);
 
 //404 handler 
 app.use((req,res) =>{

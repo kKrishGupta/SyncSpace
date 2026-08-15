@@ -2,16 +2,22 @@ const projectService = require('../services/projectService');
 const logger = require('../utils/logger');
 
 // POST /api/v1/workspaces/:id/projects
-const createProject = async (req, res,next) => {
-  try{
-    const{name,key,description} = req.body;
+const createProject = async (req, res, next) => {
+  try {
+    const {
+      name,
+      key,
+      description
+    } = req.body;
+
     const project = await projectService.createProject({
       workspaceId: req.params.id,
       name,
       key,
       description,
-      userId: req.user.idcr
+      userId: req.user.id
     });
+
     return res.status(201).json({
       success: true,
       message: "Project created successfully",
@@ -19,11 +25,12 @@ const createProject = async (req, res,next) => {
         id: project._id,
         name: project.name,
         key: project.key,
-        description: project.description,
+        description: project.description
       }
     });
+
   } catch (error) {
-    logger.error("Error creating project:", error);
+    logger.error(error);
     next(error);
   }
 };

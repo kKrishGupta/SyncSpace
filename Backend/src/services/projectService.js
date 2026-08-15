@@ -1,6 +1,7 @@
-const projectRepository = require('../respositories/projectRepository');
-const workspaceMemberRepository = require('../respositories/workspaceMemberRepository');
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+
+const projectRepository = require("../repositories/projectRepository");
+const workspaceMemberRepository = require("../repositories/workspaceMemberRepository");
 
 const CREATE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'];
 const UPDATE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'];
