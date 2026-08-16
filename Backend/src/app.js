@@ -7,6 +7,7 @@ const logger = require('./utils/logger');
 const devIdentity = require('./middleware/devIdentity');
 const workspaceRoutes = require('./routes/workspaceRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 // security middleware 
 app.use(helmet());
@@ -31,7 +32,7 @@ app.get('/health',(req,res) =>{
 // routes
 app.use('/api/v1', workspaceRoutes);
 app.use('/api/v1', projectRoutes);
-
+app.use('/api/v1', taskRoutes);
 //404 handler 
 app.use((req,res) =>{
   res.status(404).json({status: 'error', message: 'Route not found'});
