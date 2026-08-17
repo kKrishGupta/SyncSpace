@@ -1,0 +1,521 @@
+/* =========================================================
+   CREATE TASK MODAL
+   ========================================================= */
+
+.create-task-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(5, 7, 10, 0.72);
+
+  backdrop-filter: blur(5px);
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.create-task-modal {
+  width: min(560px, 100%);
+
+  max-height: calc(100vh - 48px);
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #15181e,
+      #101217
+    );
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.5);
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(255,255,255,0.12)
+    transparent;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.create-task-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  padding: 21px 22px 18px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.06);
+}
+
+
+.create-task-eyebrow {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #656d79;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+
+.create-task-title {
+  margin: 0;
+
+  color: #f0f2f5;
+
+  font-size: 19px;
+  font-weight: 700;
+}
+
+
+.create-task-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+
+  color: #707884;
+
+  font-size: 21px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+.create-task-close:hover {
+  background: rgba(255,255,255,0.05);
+  color: #e5e7eb;
+}
+
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.create-task-form {
+  padding: 20px 22px 22px;
+}
+
+
+.create-task-field {
+  margin-bottom: 17px;
+}
+
+
+.create-task-label {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+
+  margin-bottom: 7px;
+
+  color: #aab1bb;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+.create-task-label span {
+  color: #ef7777;
+}
+
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.create-task-input {
+  box-sizing: border-box;
+
+  width: 100%;
+  height: 39px;
+
+  padding: 0 11px;
+
+  border: 1px solid rgba(255,255,255,0.075);
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #0e1014;
+
+  color: #e7e9ed;
+
+  font-family: inherit;
+  font-size: 12px;
+
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+
+.create-task-input::placeholder {
+  color: #505762;
+}
+
+
+.create-task-input:hover {
+  border-color: rgba(255,255,255,0.11);
+}
+
+
+.create-task-input:focus {
+  border-color: rgba(124,92,255,0.5);
+
+  background: #101218;
+
+  box-shadow:
+    0 0 0 2px rgba(124,92,255,0.07);
+}
+
+
+.create-task-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+
+.create-task-textarea {
+  height: auto;
+
+  min-height: 95px;
+
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  resize: vertical;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   GRID
+   ========================================================= */
+
+.create-task-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   SELECT
+   ========================================================= */
+
+select.create-task-input {
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   LABEL BOX
+   ========================================================= */
+
+.create-task-label-box {
+  min-height: 39px;
+
+  padding: 5px 7px;
+
+  border: 1px solid rgba(255,255,255,0.075);
+  border-radius: 8px;
+
+  background: #0e1014;
+}
+
+
+.create-task-label-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+
+.create-task-label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  min-height: 25px;
+
+  padding: 0 7px;
+
+  border: 1px solid rgba(124,92,255,0.16);
+  border-radius: 5px;
+
+  background: rgba(124,92,255,0.07);
+
+  color: #aaa0df;
+
+  font-size: 10px;
+}
+
+
+.create-task-label-chip button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 15px;
+  height: 15px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #77718e;
+
+  cursor: pointer;
+}
+
+
+.create-task-label-chip button:hover {
+  color: #e0dafa;
+}
+
+
+.create-task-label-input {
+  flex: 1;
+
+  min-width: 100px;
+  height: 27px;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: #d9dce2;
+
+  font-family: inherit;
+  font-size: 11px;
+}
+
+
+.create-task-label-input::placeholder {
+  color: #4f5660;
+}
+
+
+.create-task-add-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 25px;
+  height: 25px;
+
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 5px;
+
+  background: rgba(255,255,255,0.025);
+
+  color: #727a86;
+
+  cursor: pointer;
+}
+
+
+.create-task-add-label:hover {
+  background: rgba(255,255,255,0.06);
+  color: #d1d5db;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.create-task-error {
+  margin-bottom: 15px;
+
+  padding: 9px 11px;
+
+  border: 1px solid rgba(239,68,68,0.16);
+  border-radius: 7px;
+
+  background: rgba(239,68,68,0.055);
+
+  color: #f59b9b;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.create-task-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding-top: 3px;
+}
+
+
+.create-task-cancel,
+.create-task-submit {
+  height: 37px;
+
+  padding: 0 14px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+
+.create-task-cancel {
+  border: 1px solid rgba(255,255,255,0.075);
+
+  background: transparent;
+
+  color: #858d99;
+}
+
+
+.create-task-cancel:hover {
+  background: rgba(255,255,255,0.04);
+  color: #d1d5db;
+}
+
+
+.create-task-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 1px solid rgba(124,92,255,0.35);
+
+  background: #6d55e8;
+
+  color: #ffffff;
+}
+
+
+.create-task-submit:hover {
+  background: #795ff2;
+}
+
+
+.create-task-submit:disabled,
+.create-task-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+
+.create-task-spinner {
+  width: 12px;
+  height: 12px;
+
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
+
+  border-radius: 50%;
+
+  animation:
+    create-task-spin 0.7s linear infinite;
+}
+
+
+@keyframes create-task-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .create-task-overlay {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+
+  .create-task-modal {
+    width: 100%;
+
+    max-height: 90vh;
+
+    border-radius:
+      14px 14px 0 0;
+  }
+
+
+  .create-task-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+}

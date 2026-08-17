@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 import { getProjectById } from "../services/projectService";
-
+import KanbanBoard from "../components/kanban/KanbanBoard";
 const ProjectDetail = () => {
   const { id } = useParams();
 
@@ -392,30 +392,28 @@ const ProjectDetail = () => {
       </section>
 
 
-      {/* ================================================
-          Tasks — Day 2
-      ================================================= */}
 
-      <section className="panel tasks-coming-soon">
+      <section className="project-kanban-section">
 
-        <div className="tasks-coming-soon-content">
+     <KanbanBoard
+       projectId={id}
 
-          <div className="tasks-coming-soon-label">
-            COMING NEXT
-          </div>
+    onAddTask={(status) => {
+      console.log(
+        "Create task with status:",
+        status
+      );
+    }}
 
-          <h2>
-            Task management
-          </h2>
+    onTaskClick={(task) => {
+      console.log(
+        "Open task:",
+        task
+      );
+    }}
+  />
 
-          <p>
-            Tasks will be available when
-            Day 2 development begins.
-          </p>
-
-        </div>
-
-      </section>
+</section>
 
     </div>
   );

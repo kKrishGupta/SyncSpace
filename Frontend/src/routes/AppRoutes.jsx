@@ -49,7 +49,7 @@ const AppRoutes = () => {
           element={<Settings />}
         />
         <Route
-          path="/workspace/:id"
+          path="/workspaces/:id"
           element={<Workspace />}
         />
 
