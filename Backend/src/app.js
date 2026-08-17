@@ -8,6 +8,7 @@ const devIdentity = require('./middleware/devIdentity');
 const workspaceRoutes = require('./routes/workspaceRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 
 // security middleware 
 app.use(helmet());
@@ -33,6 +34,8 @@ app.get('/health',(req,res) =>{
 app.use('/api/v1', workspaceRoutes);
 app.use('/api/v1', projectRoutes);
 app.use('/api/v1', taskRoutes);
+app.use('/api/v1', commentRoutes);
+
 //404 handler 
 app.use((req,res) =>{
   res.status(404).json({status: 'error', message: 'Route not found'});
