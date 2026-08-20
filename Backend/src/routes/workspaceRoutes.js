@@ -25,4 +25,14 @@ router.patch(
   workspaceController.updateWorkspace
 );
 
+router.post(
+  "/workspaces/:id/members/invite",
+  workspaceController.inviteMember
+);
+
+router.get(
+  "/workspaces/:id/members",
+  workspaceController.getMembers
+);
+
 module.exports = router;

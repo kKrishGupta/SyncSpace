@@ -282,12 +282,12 @@ const Settings = () => {
       </div>
 
       <div className="settings-layout">
-        <aside className="settings-sidebar">
-          <nav>
-            {["Profile", "Security", "Workspace", "Preferences"].map((tab) => (
+        <aside className="settings-sidebar w-64 flex-shrink-0">
+          <nav className="flex flex-col space-y-1">
+            {["Profile", "Account", "Appearance", "Notifications", "Security", "Workspace", "Roles & Permissions"].map((tab) => (
               <button
                 key={tab}
-                className={`settings-nav-item ${activeTab === tab ? "active" : ""}`}
+                className={`settings-nav-item text-left px-4 py-2 rounded-md transition-colors ${activeTab === tab ? "bg-indigo-50 text-indigo-700 font-medium dark:bg-indigo-900/30 dark:text-indigo-400" : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"}`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -296,8 +296,15 @@ const Settings = () => {
           </nav>
         </aside>
 
-        <main className="settings-content">
+        <main className="settings-content flex-1">
           {renderContent()}
+          {/* Render placeholder for the newly added tabs */}
+          {["Account", "Appearance", "Notifications", "Roles & Permissions"].includes(activeTab) && activeTab !== "Preferences" && (
+             <div className="panel settings-panel">
+               <h2>{activeTab} Settings</h2>
+               <p className="text-gray-500">This feature is coming soon.</p>
+             </div>
+          )}
         </main>
       </div>
     </div>

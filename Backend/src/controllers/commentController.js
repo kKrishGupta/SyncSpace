@@ -1,7 +1,8 @@
-const commentService =
-  require("../services/commentService");
-
+const commentService = require("../services/commentService");
 const logger = require("../utils/logger");
+const activityService = require("../services/activityService");
+const notificationService = require("../services/notificationService");
+const Task = require("../models/Task");
 
 
 /*
@@ -20,6 +21,36 @@ const createComment = async ( req, res, next) => {
         parentCommentId,
         userId: req.user.id
       });
+      
+    const task = await Task.findById(req.params.id);
+
+    if (task) {
+      await activityService.logActivity({
+        workspaceId: task.workspaceId,
+        projectId: task.projectId,
+        actorId: req.user.id,
+        action: 'COMMENTED',
+        entityType: 'Task',
+        entityId: task._id,
+        metadata: { taskId: task._id, title: task.title }
+      });
+    }
+
+    if (mentions && mentions.length > 0 && task) {
+      for (const mentionId of mentions) {
+        if (mentionId.toString() !== req.user.id.toString()) {
+          await notificationService.createNotification({
+            recipientId: mentionId,
+            actorId: req.user.id,
+            type: 'MENTION',
+            entityId: task._id,
+            entityType: 'Task',
+            message: `mentioned you in a comment on ${task.title}`
+          });
+        }
+      }
+    }
+
     return res.status(201).json({
       success: true,
       message: "Comment created successfully",

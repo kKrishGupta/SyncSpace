@@ -10,7 +10,7 @@ export const getCommentsByTask = async (taskId) => {
     }
   );
 
-  return response.data;
+  return response;
 };
 
 export const createComment = async (
@@ -27,7 +27,7 @@ export const createComment = async (
       },
     },
   );
-  return response.data;
+  return response;
 };
 
 export const updateComment = async (
@@ -45,7 +45,7 @@ export const updateComment = async (
     }
   );
 
-  return response.data;
+  return response;
 };
 
 export const deleteComment = async (commentId) => {
@@ -56,5 +56,5 @@ export const deleteComment = async (commentId) => {
     }
   );
 
-  return response.data;
+  return response;
 };

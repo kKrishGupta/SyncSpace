@@ -1,5 +1,6 @@
 const projectService = require('../services/projectService');
 const logger = require('../utils/logger');
+const activityService = require('../services/activityService');
 
 // POST /api/v1/workspaces/:id/projects
 const createProject = async (req, res, next) => {
@@ -16,6 +17,16 @@ const createProject = async (req, res, next) => {
       key,
       description,
       userId: req.user.id
+    });
+
+    await activityService.logActivity({
+      workspaceId: req.params.id,
+      projectId: project._id,
+      actorId: req.user.id,
+      action: 'CREATED',
+      entityType: 'Project',
+      entityId: project._id,
+      metadata: { name: project.name }
     });
 
     return res.status(201).json({

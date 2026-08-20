@@ -15,16 +15,20 @@ const apiClient = async (
     defaultHeaders["Authorization"] = `Bearer ${token}`;
   }
 
+  if (options.body instanceof FormData) {
+    delete defaultHeaders["Content-Type"];
+  }
+
   const response =
     await fetch(
       `${API_BASE_URL}${url}`,
       {
         credentials: "include",
+        ...options,
         headers: {
           ...defaultHeaders,
           ...(options.headers || {})
-        },
-        ...options
+        }
       }
     );
 

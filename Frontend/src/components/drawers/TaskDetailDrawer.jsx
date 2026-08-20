@@ -10,6 +10,8 @@ import {
 import "./TaskDetailDrawer.css";
 import { usePresence} from "../../context/PresenceContext";
 import { useAuth } from "../../context/AuthContext";
+import FileUpload from "../files/FileUpload";
+import FileList from "../files/FileList";
 
 const PRIORITY_CONFIG = {
   LOW: {
@@ -124,6 +126,8 @@ const TaskDetailDrawer = ({
     error,
     setError
   ] = useState("");
+
+  const [refreshFiles, setRefreshFiles] = useState(0);
 
 
   /*
@@ -565,23 +569,21 @@ const TaskDetailDrawer = ({
 
 
         
-          {/* ACTIVITY */}
-
+          {/* ATTACHMENTS */}
           <section className="task-drawer-section">
-
             <h2 className="task-drawer-section-title">
-              Activity
+              Attachments
             </h2>
-
-
-            <div className="task-drawer-placeholder">
-
-              <span>
-                Task activity will appear here.
-              </span>
-
-            </div>
-
+            <FileUpload 
+              workspaceId={taskDetails.workspaceId} 
+              projectId={taskDetails.projectId} 
+              taskId={taskDetails._id} 
+              onUploadComplete={() => setRefreshFiles(prev => prev + 1)}
+            />
+            <FileList 
+              taskId={taskDetails._id}
+              refreshTrigger={refreshFiles}
+            />
           </section>
 
         </div>

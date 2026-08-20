@@ -17,6 +17,8 @@ import {
   removeStoredWorkspaceId
 } from "../utils/workspaceStorage";
 
+import ActivityFeed from "../components/ActivityFeed";
+
 const Dashboard = () => {
 
   const [workspaces, setWorkspaces] = useState([]);
@@ -232,110 +234,82 @@ const Dashboard = () => {
       )}
 
 
-      {/* Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Needs Your Attention */}
+          <section className="dashboard-section">
+            <div className="section-header">
+              <div>
+                <h2>Needs Your Attention</h2>
+                <p>Tasks assigned to you that need review or action.</p>
+              </div>
+            </div>
+            <div className="panel p-4">
+              <div className="text-sm text-gray-500 text-center py-4">
+                You're all caught up!
+              </div>
+            </div>
+          </section>
 
-      <div className="stats-grid">
-
-        <div className="stat-card">
-          <span>Active Projects</span>
-          <strong>{projects.length}</strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Open Tasks</span>
-          <strong>0</strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Team Members</span>
-          <strong>0</strong>
-        </div>
-
-        <div className="stat-card">
-          <span>Completed</span>
-          <strong>0</strong>
-        </div>
-
-      </div>
-
-
-      {/* Projects */}
-
-      <section className="dashboard-section">
-
-        <div className="section-header">
-
-          <div>
-            <h2>Projects</h2>
-
-            <p>
-              Projects in your current workspace.
-            </p>
-          </div>
-
-          {selectedWorkspace && (
-            <Link
-              to={`/workspaces/${selectedWorkspace._id}`}
-              className="secondary-button"
-            >
-              View all
-            </Link>
-          )}
-
-        </div>
-
-
-        {projects.length === 0 ? (
-
-          <div className="panel">
-
-            <div className="empty-state">
-              No projects in this workspace yet.
+          {/* Projects */}
+          <section className="dashboard-section">
+            <div className="section-header">
+              <div>
+                <h2>Projects</h2>
+                <p>Projects in your current workspace.</p>
+              </div>
+              {selectedWorkspace && (
+                <Link
+                  to={`/workspaces/${selectedWorkspace._id}`}
+                  className="secondary-button"
+                >
+                  View all
+                </Link>
+              )}
             </div>
 
-          </div>
-
-        ) : (
-
-          <div className="project-grid">
-
-            {projects.map((project) => (
-
-              <div
-                className="project-card"
-                key={project._id}
-              >
-
-                <div className="project-card-top">
-
-                  <div className="project-key">
-                    {project.key}
-                  </div>
-
-                  <span className="status-badge">
-                    {project.status}
-                  </span>
-
+            {projects.length === 0 ? (
+              <div className="panel">
+                <div className="empty-state">
+                  No projects in this workspace yet.
                 </div>
-
-                <h3>
-                  {project.name}
-                </h3>
-
-                <p>
-                  {project.description ||
-                    "No description provided."}
-                </p>
-
               </div>
+            ) : (
+              <div className="project-grid">
+                {projects.map((project) => (
+                  <div className="project-card" key={project._id}>
+                    <div className="project-card-top">
+                      <div className="project-key">{project.key}</div>
+                      <span className="status-badge">{project.status}</span>
+                    </div>
+                    <h3>{project.name}</h3>
+                    <p>{project.description || "No description provided."}</p>
+                    <Link to={`/workspaces/${selectedWorkspace._id}/projects/${project._id}`} className="mt-4 text-indigo-600 text-sm hover:underline block">
+                      Go to Project &rarr;
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
 
-            ))}
-
-          </div>
-
-        )}
-
-      </section>
+        <div className="space-y-6">
+          {/* Team Activity */}
+          <section className="dashboard-section">
+            <div className="section-header">
+              <h2>Team Activity</h2>
+            </div>
+            <div className="panel p-4">
+              {selectedWorkspace ? (
+                 <ActivityFeed workspaceId={selectedWorkspace._id} />
+              ) : (
+                <div className="text-sm text-gray-500">Select a workspace to view activity.</div>
+              )}
+            </div>
+          </section>
+        </div>
+      </div>
 
       <CreateWorkspaceModal
         open={createModalOpen}
@@ -343,7 +317,6 @@ const Dashboard = () => {
         onCreate={handleCreateWorkspace}
         loading={creating}
       />
-
     </div>
   );
 };

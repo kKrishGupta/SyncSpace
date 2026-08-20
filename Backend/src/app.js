@@ -10,9 +10,19 @@ const workspaceRoutes = require('./routes/workspaceRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const fileRoutes = require('./routes/fileRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const path = require('path');
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // security middleware 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false, // allow serving images across origins if needed
+}));
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -39,6 +49,10 @@ app.use('/api/v1', requireAuth, workspaceRoutes);
 app.use('/api/v1', requireAuth, projectRoutes);
 app.use('/api/v1', requireAuth, taskRoutes);
 app.use('/api/v1', requireAuth, commentRoutes);
+app.use('/api/v1/notifications', requireAuth, notificationRoutes);
+app.use('/api/v1/activities', requireAuth, activityRoutes);
+app.use('/api/v1/files', requireAuth, fileRoutes);
+app.use('/api/v1/search', requireAuth, searchRoutes);
 
 //404 handler 
 app.use((req,res) =>{

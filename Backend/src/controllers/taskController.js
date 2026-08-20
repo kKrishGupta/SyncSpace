@@ -1,5 +1,7 @@
 const taskService = require("../services/taskService");
 const logger = require("../utils/logger");
+const activityService = require("../services/activityService");
+const notificationService = require("../services/notificationService");
 
 // POST /api/v1/projects/:id/tasks
 const createTask = async (req, res, next) => {
@@ -20,6 +22,16 @@ const createTask = async (req, res, next) => {
       labels,
       dueDate,
       userId: req.user.id
+    });
+
+    await activityService.logActivity({
+      workspaceId: task.workspaceId,
+      projectId: task.projectId,
+      actorId: req.user.id,
+      action: 'CREATED',
+      entityType: 'Task',
+      entityId: task._id,
+      metadata: { title: task.title }
     });
 
     return res.status(201).json({
@@ -134,6 +146,16 @@ const updateTaskStatus = async (req, res, next) => {
       req.user.id
     );
 
+    await activityService.logActivity({
+      workspaceId: task.workspaceId,
+      projectId: task.projectId,
+      actorId: req.user.id,
+      action: 'MOVED',
+      entityType: 'Task',
+      entityId: task._id,
+      metadata: { status }
+    });
+
     return res.status(200).json({
       success: true,
       message: "Task status updated successfully",
@@ -160,6 +182,27 @@ const updateTaskAssignee = async (req, res, next) => {
       version,
       req.user.id
     );
+
+    await activityService.logActivity({
+      workspaceId: task.workspaceId,
+      projectId: task.projectId,
+      actorId: req.user.id,
+      action: 'ASSIGNED',
+      entityType: 'Task',
+      entityId: task._id,
+      metadata: { assigneeId }
+    });
+
+    if (assigneeId.toString() !== req.user.id.toString()) {
+      await notificationService.createNotification({
+        recipientId: assigneeId,
+        actorId: req.user.id,
+        type: 'TASK_ASSIGNED',
+        entityId: task._id,
+        entityType: 'Task',
+        message: `assigned you to task: ${task.title}`
+      });
+    }
 
     return res.status(200).json({
       success: true,

@@ -9,6 +9,9 @@ import {
   getProjectsByWorkspace
 } from "../services/projectService";
 
+import ActivityFeed from "../components/ActivityFeed";
+import WorkspaceMembers from "../components/workspace/WorkspaceMembers";
+
 const Workspace = () => {
   const { id } = useParams();
 
@@ -17,6 +20,7 @@ const Workspace = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("projects");
 
   useEffect(() => {
     const loadWorkspace = async () => {
@@ -111,15 +115,24 @@ const Workspace = () => {
 
       <div className="workspace-tabs">
 
-        <button className="workspace-tab active">
+        <button 
+          className={`workspace-tab ${activeTab === "projects" ? "active" : ""}`}
+          onClick={() => setActiveTab("projects")}
+        >
           Projects
         </button>
 
-        <button className="workspace-tab">
+        <button 
+          className={`workspace-tab ${activeTab === "members" ? "active" : ""}`}
+          onClick={() => setActiveTab("members")}
+        >
           Members
         </button>
 
-        <button className="workspace-tab">
+        <button 
+          className={`workspace-tab ${activeTab === "activity" ? "active" : ""}`}
+          onClick={() => setActiveTab("activity")}
+        >
           Activity
         </button>
 
@@ -128,85 +141,63 @@ const Workspace = () => {
 
       {/* Projects */}
 
-      <section className="workspace-section">
-
-        <div className="section-header">
-
-          <div>
-            <h2>Projects</h2>
-
-            <p>
-              Projects inside this workspace.
-            </p>
+      {activeTab === "projects" && (
+        <section className="workspace-section">
+          <div className="section-header">
+            <div>
+              <h2>Projects</h2>
+              <p>Projects inside this workspace.</p>
+            </div>
+            <button className="primary-button">+ New Project</button>
           </div>
 
-          <button className="primary-button">
-            + New Project
-          </button>
+          {projects.length === 0 ? (
+            <div className="panel">
+              <div className="empty-state">No projects in this workspace yet.</div>
+            </div>
+          ) : (
+            <div className="project-grid">
+              {projects.map((project) => (
+                <div className="project-card" key={project._id}>
+                  <div className="project-card-top">
+                    <div className="project-key">{project.key}</div>
+                    <span className={`status-badge ${project.status?.toLowerCase()}`}>
+                      {project.status}
+                    </span>
+                  </div>
+                  <h3>{project.name}</h3>
+                  <p>{project.description || "No description provided."}</p>
+                  <div className="project-card-footer">View project →</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
-        </div>
-
-
-        {projects.length === 0 ? (
-
-          <div className="panel">
-            <div className="empty-state">
-              No projects in this workspace yet.
+      {activeTab === "members" && (
+        <section className="workspace-section">
+          <div className="section-header">
+            <div>
+              <h2>Members</h2>
+              <p>People in this workspace.</p>
             </div>
           </div>
+          <WorkspaceMembers workspaceId={workspace._id} />
+        </section>
+      )}
 
-        ) : (
-
-          <div className="project-grid">
-
-            {projects.map((project) => (
-
-              <div
-                className="project-card"
-                key={project._id}
-              >
-
-                <div className="project-card-top">
-
-                  <div className="project-key">
-                    {project.key}
-                  </div>
-
-                  <span
-                    className={`status-badge ${
-                      project.status?.toLowerCase()
-                    }`}
-                  >
-                    {project.status}
-                  </span>
-
-                </div>
-
-
-                <h3>
-                  {project.name}
-                </h3>
-
-
-                <p>
-                  {project.description ||
-                    "No description provided."}
-                </p>
-
-
-                <div className="project-card-footer">
-                  View project →
-                </div>
-
-              </div>
-
-            ))}
-
+      {activeTab === "activity" && (
+        <section className="workspace-section">
+          <div className="section-header">
+            <div>
+              <h2>Workspace Activity</h2>
+              <p>Recent events across all projects.</p>
+            </div>
           </div>
-
-        )}
-
-      </section>
+          <ActivityFeed workspaceId={workspace._id} />
+        </section>
+      )}
 
     </div>
   );
