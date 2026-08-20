@@ -6,19 +6,24 @@ const apiClient = async (
   options = {}
 ) => {
 
+  const token = localStorage.getItem('accessToken');
+  const defaultHeaders = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    defaultHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
   const response =
     await fetch(
       `${API_BASE_URL}${url}`,
       {
         credentials: "include",
-
         headers: {
-          "Content-Type":
-            "application/json",
-
+          ...defaultHeaders,
           ...(options.headers || {})
         },
-
         ...options
       }
     );

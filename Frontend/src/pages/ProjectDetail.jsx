@@ -7,6 +7,7 @@ const ProjectDetail = () => {
   const { id } = useParams();
 
   const [project, setProject] = useState(null);
+  const [activeTab, setActiveTab] = useState("Overview");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -192,35 +193,16 @@ const ProjectDetail = () => {
       ================================================= */}
 
       <div className="project-tabs">
-
-        <button
-          className="project-tab active"
-          type="button"
-        >
-          Overview
-        </button>
-
-        <button
-          className="project-tab"
-          type="button"
-        >
-          Members
-        </button>
-
-        <button
-          className="project-tab"
-          type="button"
-        >
-          Projects
-        </button>
-
-        <button
-          className="project-tab"
-          type="button"
-        >
-          Activity
-        </button>
-
+        {["Overview", "Members", "Projects", "Activity"].map((tab) => (
+          <button
+            key={tab}
+            className={`project-tab ${activeTab === tab ? "active" : ""}`}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
 
@@ -228,192 +210,127 @@ const ProjectDetail = () => {
           Overview
       ================================================= */}
 
-      <section className="project-overview-grid">
+      {activeTab === "Overview" && (
+        <section className="project-overview-grid">
 
-        {/* Project Information */}
+          {/* Project Information */}
 
-        <div className="panel">
+          <div className="panel">
+            <div className="panel-header">
+              <div>
+                <div className="panel-eyebrow">
+                  PROJECT
+                </div>
+                <h2>
+                  Overview
+                </h2>
+              </div>
+            </div>
 
-          <div className="panel-header">
-
-            <div>
-              <div className="panel-eyebrow">
-                PROJECT
+            <div className="project-info-list">
+              <div className="project-info-row">
+                <span>Project key</span>
+                <strong>{project.key}</strong>
               </div>
 
-              <h2>
-                Overview
-              </h2>
-            </div>
-
-          </div>
-
-
-          <div className="project-info-list">
-
-            <div className="project-info-row">
-
-              <span>
-                Project key
-              </span>
-
-              <strong>
-                {project.key}
-              </strong>
-
-            </div>
-
-
-            <div className="project-info-row">
-
-              <span>
-                Status
-              </span>
-
-              <strong>
-                {project.status}
-              </strong>
-
-            </div>
-
-
-            <div className="project-info-row">
-
-              <span>
-                Created
-              </span>
-
-              <strong>
-                {project.createdAt
-                  ? new Date(
-                      project.createdAt
-                    ).toLocaleDateString()
-                  : "—"}
-              </strong>
-
-            </div>
-
-
-            <div className="project-info-row">
-
-              <span>
-                Last updated
-              </span>
-
-              <strong>
-                {project.updatedAt
-                  ? new Date(
-                      project.updatedAt
-                    ).toLocaleDateString()
-                  : "—"}
-              </strong>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* Members */}
-
-        <div className="panel">
-
-          <div className="panel-header">
-
-            <div>
-
-              <div className="panel-eyebrow">
-                TEAM
+              <div className="project-info-row">
+                <span>Status</span>
+                <strong>{project.status}</strong>
               </div>
 
-              <h2>
-                Members
-              </h2>
+              <div className="project-info-row">
+                <span>Created</span>
+                <strong>
+                  {project.createdAt
+                    ? new Date(project.createdAt).toLocaleDateString()
+                    : "—"}
+                </strong>
+              </div>
 
+              <div className="project-info-row">
+                <span>Last updated</span>
+                <strong>
+                  {project.updatedAt
+                    ? new Date(project.updatedAt).toLocaleDateString()
+                    : "—"}
+                </strong>
+              </div>
             </div>
-
           </div>
 
+          {/* Members Overview snippet */}
+          <div className="panel">
+            <div className="panel-header">
+              <div>
+                <div className="panel-eyebrow">TEAM</div>
+                <h2>Members</h2>
+              </div>
+            </div>
+            <div className="project-placeholder">
+              <div className="placeholder-icon">◉</div>
+              <p>Project members will appear here.</p>
+            </div>
+          </div>
 
+        </section>
+      )}
+
+
+      {/* ================================================
+          Members Tab
+      ================================================= */}
+      {activeTab === "Members" && (
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <div className="panel-eyebrow">TEAM</div>
+              <h2>Members</h2>
+            </div>
+          </div>
           <div className="project-placeholder">
-
-            <div className="placeholder-icon">
-              ◉
-            </div>
-
-            <p>
-              Project members will appear here.
-            </p>
-
+            <div className="placeholder-icon">◉</div>
+            <p>Project members will appear here.</p>
           </div>
-
-        </div>
-
-
-      </section>
+        </section>
+      )}
 
 
       {/* ================================================
           Activity
       ================================================= */}
 
-      <section className="panel project-activity-panel">
-
-        <div className="panel-header">
-
-          <div>
-
-            <div className="panel-eyebrow">
-              PROJECT
+      {activeTab === "Activity" && (
+        <section className="panel project-activity-panel">
+          <div className="panel-header">
+            <div>
+              <div className="panel-eyebrow">PROJECT</div>
+              <h2>Activity</h2>
             </div>
-
-            <h2>
-              Activity
-            </h2>
-
           </div>
-
-        </div>
-
-
-        <div className="project-placeholder">
-
-          <div className="placeholder-icon">
-            ◌
+          <div className="project-placeholder">
+            <div className="placeholder-icon">◌</div>
+            <p>Project activity will appear here.</p>
           </div>
-
-          <p>
-            Project activity will appear here.
-          </p>
-
-        </div>
-
-      </section>
+        </section>
+      )}
 
 
-
-      <section className="project-kanban-section">
-
-     <KanbanBoard
-       projectId={id}
-
-    onAddTask={(status) => {
-      console.log(
-        "Create task with status:",
-        status
-      );
-    }}
-
-    onTaskClick={(task) => {
-      console.log(
-        "Open task:",
-        task
-      );
-    }}
-  />
-
-</section>
+      {/* ================================================
+          Projects (Kanban Board)
+      ================================================= */}
+      {activeTab === "Projects" && (
+        <section className="project-kanban-section">
+          <KanbanBoard
+            projectId={id}
+            onAddTask={(status) => {
+              console.log("Create task with status:", status);
+            }}
+            onTaskClick={(task) => {
+              console.log("Open task:", task);
+            }}
+          />
+        </section>
+      )}
 
     </div>
   );

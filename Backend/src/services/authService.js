@@ -129,8 +129,45 @@ class AuthService {
   }
 
   async resetPassword(token, newPassword) {
-    // Mock implementation
-    logger.info(`Password reset token received: ${token}`);
+    logger.info(`Mock reset password for token ${token}`);
+  }
+
+  async updateProfile(userId, { name, avatar }) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    if (name) user.name = name;
+    if (avatar !== undefined) user.avatar = avatar;
+
+    await user.save();
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar
+    };
+  }
+
+  async updatePassword(userId, oldPassword, newPassword) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isMatch) {
+      throw new Error("Incorrect current password");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    user.passwordHash = passwordHash;
+    await user.save();
+
+    // Optionally revoke all sessions here, but let's keep it simple for now
     return true;
   }
 }

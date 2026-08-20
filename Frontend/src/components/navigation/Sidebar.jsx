@@ -1,7 +1,10 @@
 import { NavLink } from "react-router-dom";
 import WorkspaceSelector from "./WorkspaceSelector";
 import logo from "../../assests/logo.png";
+import { useAuth } from "../../context/AuthContext";
+
 const Sidebar = ({ open, onClose }) => {
+  const { logout } = useAuth();
   return (
     <>
       {open && (
@@ -115,6 +118,17 @@ const Sidebar = ({ open, onClose }) => {
             <span>⚙</span>
             <span>Settings</span>
           </NavLink>
+
+          <button
+            onClick={() => {
+              logout();
+              onClose();
+            }}
+            className="sidebar-link w-full text-left mt-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          >
+            <span>⎋</span>
+            <span>Logout</span>
+          </button>
 
         </nav>
 

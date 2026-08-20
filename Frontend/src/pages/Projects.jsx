@@ -130,6 +130,10 @@ const Projects = () => {
       const newProject =
         response.data;
 
+      if (!newProject._id && newProject.id) {
+        newProject._id = newProject.id;
+      }
+
       setProjects((previous) => [
         newProject,
         ...previous

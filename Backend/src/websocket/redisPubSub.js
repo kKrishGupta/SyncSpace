@@ -6,6 +6,7 @@ const {
 const logger =
   require("../utils/logger");
 
+const activeSubscriptions = new Set();
 
 /*
 |--------------------------------------------------------------------------
@@ -132,6 +133,10 @@ const subscribeToWorkspace =
         workspaceId
       );
 
+    if (activeSubscriptions.has(channel)) {
+      return channel;
+    }
+
 
     await redisSubscriber.subscribe(
       channel,
@@ -165,6 +170,8 @@ const subscribeToWorkspace =
       }
     );
 
+    activeSubscriptions.add(channel);
+
 
     logger.info(
       `Subscribed to Redis channel: ${channel}`
@@ -197,6 +204,8 @@ const unsubscribeFromWorkspace =
       .unsubscribe(
         channel
       );
+
+    activeSubscriptions.delete(channel);
 
 
     logger.info(

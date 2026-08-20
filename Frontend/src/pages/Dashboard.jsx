@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import {
-  getWorkspaces
+  getWorkspaces,
+  createWorkspace
 } from "../services/workspaceService";
+import CreateWorkspaceModal from "../components/navigation/CreateWorkspaceModal";
 
 import {
   getProjectsByWorkspace
@@ -11,7 +13,8 @@ import {
 
 import {
   getStoredWorkspaceId,
-  setStoredWorkspaceId
+  setStoredWorkspaceId,
+  removeStoredWorkspaceId
 } from "../utils/workspaceStorage";
 
 const Dashboard = () => {
@@ -24,6 +27,31 @@ const Dashboard = () => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateWorkspace = async (workspaceData) => {
+    try {
+      setCreating(true);
+      const response = await createWorkspace(workspaceData);
+      const newWorkspace = response.data;
+      if (!newWorkspace._id && newWorkspace.id) {
+        newWorkspace._id = newWorkspace.id;
+      }
+      setWorkspaces([...workspaces, newWorkspace]);
+      setSelectedWorkspace(newWorkspace);
+      setStoredWorkspaceId(newWorkspace._id);
+      setCreateModalOpen(false);
+      // Wait for React to re-render, but usually better to let useEffect fetch, 
+      // or we can just fetch projects here:
+      const projectsResponse = await getProjectsByWorkspace(newWorkspace._id);
+      setProjects(projectsResponse.data || []);
+    } catch (err) {
+      throw err;
+    } finally {
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
 
@@ -43,6 +71,8 @@ const Dashboard = () => {
         setWorkspaces(workspaceList);
 
         if (workspaceList.length === 0) {
+          removeStoredWorkspaceId();
+          setSelectedWorkspace(null);
           return;
         }
 
@@ -143,6 +173,25 @@ const Dashboard = () => {
 
       </div>
 
+
+      {/* Empty State when 0 workspaces */}
+      {!selectedWorkspace && workspaces.length === 0 && (
+        <section className="dashboard-section">
+          <div className="panel" style={{ textAlign: "center", padding: "48px 24px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Welcome to SyncSpace!</h2>
+            <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
+              To get started, create your first workspace for your team.
+            </p>
+            <button
+              className="primary-button"
+              onClick={() => setCreateModalOpen(true)}
+              style={{ margin: "0 auto" }}
+            >
+              + Create Workspace
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Workspace */}
 
@@ -287,6 +336,13 @@ const Dashboard = () => {
         )}
 
       </section>
+
+      <CreateWorkspaceModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreateWorkspace}
+        loading={creating}
+      />
 
     </div>
   );

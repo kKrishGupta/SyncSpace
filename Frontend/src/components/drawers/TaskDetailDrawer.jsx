@@ -9,6 +9,7 @@ import {
 
 import "./TaskDetailDrawer.css";
 import { usePresence} from "../../context/PresenceContext";
+import { useAuth } from "../../context/AuthContext";
 
 const PRIORITY_CONFIG = {
   LOW: {
@@ -105,6 +106,7 @@ const TaskDetailDrawer = ({
 }) => {
 
   const {isOnline} = usePresence();
+  const { user: currentUser } = useAuth();
 
   const [
     taskDetails,

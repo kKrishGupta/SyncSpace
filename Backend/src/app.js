@@ -48,7 +48,14 @@ app.use((req,res) =>{
 // Global error handler
 app.use((err, req, res, next) =>{
   logger.error(err);
-  res.status(500).json({status: 'error', message: 'Internal Server Error'});
+  
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  res.status(statusCode).json({
+    status: 'error', 
+    message: message
+  });
 });
 
 module.exports = app;

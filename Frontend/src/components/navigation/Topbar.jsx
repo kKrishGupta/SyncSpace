@@ -1,5 +1,12 @@
+import { useAuth } from "../../context/AuthContext";
 
 const Topbar = ({ onMenuClick }) => {
+  const { user } = useAuth();
+  
+  const initial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
+  const displayName = user?.name || "User";
+  const role = "Member"; // You can make this dynamic based on workspace later
+
   return (
     <header className="topbar">
 
@@ -38,18 +45,18 @@ const Topbar = ({ onMenuClick }) => {
         {/* User */}
         <div className="user-menu">
 
-          <div className="user-avatar">
-            K
+          <div className="user-avatar" style={user?.avatar ? { backgroundImage: `url(${user.avatar})`, backgroundSize: 'cover' } : {}}>
+            {!user?.avatar && initial}
           </div>
 
           <div className="user-info">
 
             <span className="user-name">
-              Krish Gupta
+              {displayName}
             </span>
 
             <span className="user-role">
-              Developer
+              {role}
             </span>
 
           </div>

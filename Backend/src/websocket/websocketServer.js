@@ -376,6 +376,12 @@ const initializeWebSocketServer =
                   workspaceId
                 );
 
+                /*
+                * Dynamically subscribe Node server to Redis channel
+                */
+                const { subscribeToWorkspaceEvents } = require("./eventSubscriber");
+                await subscribeToWorkspaceEvents(workspaceId);
+
 
                 /*
                 * Workspace-specific presence.

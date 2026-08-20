@@ -31,7 +31,7 @@ class WebSocketClient {
   |--------------------------------------------------------------------------
   */
 
-  connect() {
+  connect(token) {
     if (
       this.socket &&
       (
@@ -44,16 +44,18 @@ class WebSocketClient {
       return;
     }
 
+    if (!token) {
+      console.warn("WebSocket connection skipped: No token provided");
+      return;
+    }
+
     this.shouldReconnect = true;
+    this.token = token; // Store token for reconnections
 
-    console.log(
-      "Connecting WebSocket:",
-      WS_URL
-    );
+    const urlWithToken = `${WS_URL}?token=${token}`;
+    console.log("Connecting WebSocket:", WS_URL);
 
-    this.socket =
-      new WebSocket(WS_URL);
-
+    this.socket = new WebSocket(urlWithToken);
 
     this.socket.onopen = () => {
       console.log(
@@ -366,7 +368,7 @@ class WebSocketClient {
       setTimeout(() => {
         this.reconnectTimer = null;
 
-        this.connect();
+        this.connect(this.token);
       }, delay);
   }
 

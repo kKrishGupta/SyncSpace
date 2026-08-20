@@ -2,13 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  getWorkspaces
+  getWorkspaces,
+  createWorkspace
 } from "../../services/workspaceService";
 import useWebSocket from "../../hooks/useWebSocket";
 import {
   getStoredWorkspaceId,
-  setStoredWorkspaceId
+  setStoredWorkspaceId,
+  removeStoredWorkspaceId
 } from "../../utils/workspaceStorage";
+import CreateWorkspaceModal from "./CreateWorkspaceModal";
 
 const WorkspaceSelector = () => {
   const {
@@ -23,6 +26,26 @@ const WorkspaceSelector = () => {
 
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateWorkspace = async (workspaceData) => {
+    try {
+      setCreating(true);
+      const response = await createWorkspace(workspaceData);
+      const newWorkspace = response.data;
+      if (!newWorkspace._id && newWorkspace.id) {
+        newWorkspace._id = newWorkspace.id;
+      }
+      setWorkspaces([...workspaces, newWorkspace]);
+      handleWorkspaceSelect(newWorkspace);
+      setCreateModalOpen(false);
+    } catch (error) {
+      throw error;
+    } finally {
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -34,6 +57,8 @@ const WorkspaceSelector = () => {
         setWorkspaces(workspaceList);
 
         if (workspaceList.length === 0) {
+          removeStoredWorkspaceId();
+          setSelectedWorkspace(null);
           return;
         }
 
@@ -112,8 +137,21 @@ const WorkspaceSelector = () => {
 
   if (workspaces.length === 0) {
     return (
-      <div className="workspace-selector empty">
-        <span>No workspace</span>
+      <div className="workspace-selector-wrapper">
+        <button
+          className="workspace-selector empty"
+          onClick={() => setCreateModalOpen(true)}
+          style={{ cursor: "pointer", border: "1px dashed var(--border-color)", background: "transparent" }}
+        >
+          <span>+ Create Workspace</span>
+        </button>
+
+        <CreateWorkspaceModal
+          open={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onCreate={handleCreateWorkspace}
+          loading={creating}
+        />
       </div>
     );
   }
@@ -200,8 +238,28 @@ const WorkspaceSelector = () => {
 
           ))}
 
+          <div className="workspace-dropdown-actions">
+            <button
+              className="secondary-button"
+              onClick={() => {
+                setOpen(false);
+                setCreateModalOpen(true);
+              }}
+              style={{ width: "100%", marginTop: "12px", justifyContent: "center" }}
+            >
+              + Create Workspace
+            </button>
+          </div>
+
         </div>
       )}
+
+      <CreateWorkspaceModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreate={handleCreateWorkspace}
+        loading={creating}
+      />
 
     </div>
   );
