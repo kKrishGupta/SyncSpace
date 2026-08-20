@@ -10,10 +10,6 @@ const connectionManager =
   require("./connectionManager");
 
 
-const devIdentity =
-  require("./devIdentity");
-
-
 const EVENT_TYPES =
   require("./eventTypes");
 
@@ -116,45 +112,41 @@ const initializeWebSocketServer =
 
         /*
         |--------------------------------------------------------------------------
-        | Development identity
+        | Authentication
         |--------------------------------------------------------------------------
         */
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const token = url.searchParams.get("token");
 
-        if (
-          !devIdentity.id
-        ) {
-
-          logger.error(
-            "DEV_USER_ID is not configured"
-          );
-
-
-          ws.close(
-            1008,
-            "WebSocket identity is not configured"
-          );
-
-
+        if (!token) {
+          logger.error("WebSocket connection attempt without token");
+          ws.close(1008, "Authentication token required");
           return;
-
         }
 
+        let connectionUser;
+        try {
+          const jwt = require("jsonwebtoken");
+          const User = require("../models/User");
+          const ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_prod';
+          
+          const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET);
+          const user = await User.findById(decoded.id);
 
-        const connectionUser = {
+          if (!user) {
+            throw new Error("User not found");
+          }
 
-          id:
-            String(
-              devIdentity.id
-            ),
-
-          name:
-            devIdentity.name
-
-        };
-
-
-        ws.connectionUser =
-          connectionUser;
+          connectionUser = {
+            id: String(user._id),
+            name: user.name
+          };
+          ws.connectionUser = connectionUser;
+        } catch (error) {
+          logger.error({ error: error.message }, "WebSocket authentication failed");
+          ws.close(1008, "Invalid or expired token");
+          return;
+        }
 
 
         /*
