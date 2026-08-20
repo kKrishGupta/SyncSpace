@@ -8,7 +8,7 @@ import {
 } from "../../services/taskService";
 
 import "./TaskDetailDrawer.css";
-
+import { usePresence} from "../../context/PresenceContext";
 
 const PRIORITY_CONFIG = {
   LOW: {
@@ -103,6 +103,8 @@ const TaskDetailDrawer = ({
   isOpen,
   onClose
 }) => {
+
+  const {isOnline} = usePresence();
 
   const [
     taskDetails,
@@ -422,17 +424,27 @@ const TaskDetailDrawer = ({
 
               <div className="task-drawer-person">
 
-                {taskDetails.assigneeId && (
-                  <span className="task-drawer-avatar">
-                    {getInitials(
-                      assigneeName
-                    )}
-                  </span>
-                )}
+  <span
+    className={`presence-dot ${
+      isOnline(
+        taskDetails.assigneeId
+      )
+        ? "online"
+        : "offline"
+    }`}
+  />
 
-                <span>
-                  {assigneeName}
-                </span>
+  {taskDetails.assigneeId && (
+    <span className="task-drawer-avatar">
+      {getInitials(
+        assigneeName
+      )}
+    </span>
+  )}
+
+  <span>
+    {assigneeName}
+  </span>
 
               </div>
 
@@ -508,7 +520,9 @@ const TaskDetailDrawer = ({
 
 
 {/* COMMENTS */}
-<CommentSection taskId={taskDetails._id} />
+  <CommentSection taskId={taskDetails._id} projectId={taskDetails.projectId} 
+  workspaceId={taskDetails.workspaceId} currentUser={currentUser} />
+  
           {/* LABELS */}
 
           <section className="task-drawer-section">

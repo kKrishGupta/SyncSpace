@@ -1,8 +1,25 @@
 const mongoose = require("mongoose");
 
-const projectRepository = require("../repositories/projectRepository");
-const taskRepository = require("../repositories/taskRepository");
-const workspaceMemberRepository = require("../repositories/workspaceMemberRepository");
+const projectRepository =
+  require("../repositories/projectRepository");
+
+const taskRepository =
+  require("../repositories/taskRepository");
+
+const workspaceMemberRepository =
+  require("../repositories/workspaceMemberRepository");
+
+const {
+  createEvent
+} = require("../websocket/eventFactory");
+
+const EVENT_TYPES =
+  require("../websocket/eventTypes");
+
+const {
+  publishApplicationEvent
+} = require("../websocket/eventPublisher");
+
 
 const UPDATE_ROLES = [
   "OWNER",
@@ -32,24 +49,57 @@ const createTask = async ({
   userId
 }) => {
 
-  if (!mongoose.Types.ObjectId.isValid(projectId)) {
-    const error = new Error("Invalid project ID");
+  /*
+   * Validate project ID
+   */
+
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      projectId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid project ID"
+      );
+
     error.statusCode = 400;
+
     throw error;
   }
+
+
+  /*
+   * Find project
+   */
 
   const project =
-    await projectRepository.findProjectById(projectId);
+    await projectRepository.findProjectById(
+      projectId
+    );
+
 
   if (!project) {
-    const error = new Error("Project not found");
+
+    const error =
+      new Error(
+        "Project not found"
+      );
+
     error.statusCode = 404;
+
     throw error;
   }
 
-  // NEVER trust workspaceId from frontend.
-  // Get it from the project.
-  const workspaceId = project.workspaceId;
+
+  /*
+   * Workspace membership
+   */
+
+  const workspaceId =
+    project.workspaceId;
+
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -57,40 +107,107 @@ const createTask = async ({
       userId
     );
 
+
   if (!membership) {
-    const error = new Error(
-      "You do not have access to this workspace"
-    );
+
+    const error =
+      new Error(
+        "You do not have access to this workspace"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
 
-  const task = await taskRepository.createTask({
-    projectId: project._id,
-    workspaceId: project.workspaceId,
 
-    title,
-    description: description || "",
+  /*
+   * Create task in MongoDB
+   */
 
-    // Backend controlled
-    status: "TODO",
+  const task =
+    await taskRepository.createTask({
 
-    priority: priority || "MEDIUM",
+      projectId:
+        project._id,
 
-    // Initially assign to creator
-    assigneeId: userId,
+      workspaceId:
+        project.workspaceId,
 
-    // Backend controlled
-    reporterId: userId,
+      title,
 
-    labels: labels || [],
+      description:
+        description || "",
 
-    dueDate: dueDate || null,
+      status:
+        "TODO",
 
-    // Backend controlled
-    version: 1
-  });
+      priority:
+        priority || "MEDIUM",
+
+      assigneeId:
+        userId,
+
+      reporterId:
+        userId,
+
+      labels:
+        labels || [],
+
+      dueDate:
+        dueDate || null,
+
+      version:
+        1
+
+    });
+
+
+  /*
+   * MongoDB succeeded.
+   *
+   * NOW publish real-time event.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.TASK_CREATED,
+
+      workspaceId:
+        String(
+          task.workspaceId
+        ),
+
+      projectId:
+        String(
+          task.projectId
+        ),
+
+      entityId:
+        String(
+          task._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        task
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
+  );
+
 
   return task;
 };
@@ -107,22 +224,45 @@ const getTasksByProject = async (
   userId
 ) => {
 
-  if (!mongoose.Types.ObjectId.isValid(projectId)) {
-    const error = new Error("Invalid project ID");
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      projectId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid project ID"
+      );
+
     error.statusCode = 400;
+
     throw error;
   }
+
 
   const project =
-    await projectRepository.findProjectById(projectId);
+    await projectRepository.findProjectById(
+      projectId
+    );
+
 
   if (!project) {
-    const error = new Error("Project not found");
+
+    const error =
+      new Error(
+        "Project not found"
+      );
+
     error.statusCode = 404;
+
     throw error;
   }
 
-  const workspaceId = project.workspaceId;
+
+  const workspaceId =
+    project.workspaceId;
+
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -130,14 +270,19 @@ const getTasksByProject = async (
       userId
     );
 
+
   if (!membership) {
-    const error = new Error(
-      "You do not have access to this workspace"
-    );
+
+    const error =
+      new Error(
+        "You do not have access to this workspace"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
+
 
   return await taskRepository.findTasksByProject(
     projectId
@@ -156,20 +301,41 @@ const getTaskById = async (
   userId
 ) => {
 
-  if (!mongoose.Types.ObjectId.isValid(taskId)) {
-    const error = new Error("Invalid task ID");
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      taskId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid task ID"
+      );
+
     error.statusCode = 400;
+
     throw error;
   }
+
 
   const task =
-    await taskRepository.findTaskById(taskId);
+    await taskRepository.findTaskById(
+      taskId
+    );
+
 
   if (!task) {
-    const error = new Error("Task not found");
+
+    const error =
+      new Error(
+        "Task not found"
+      );
+
     error.statusCode = 404;
+
     throw error;
   }
+
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -177,14 +343,19 @@ const getTaskById = async (
       userId
     );
 
+
   if (!membership) {
-    const error = new Error(
-      "You do not have access to this task"
-    );
+
+    const error =
+      new Error(
+        "You do not have access to this task"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
+
 
   return task;
 };
@@ -192,23 +363,7 @@ const getTaskById = async (
 
 /*
 |--------------------------------------------------------------------------
-| GENERIC UPDATE TASK
-|--------------------------------------------------------------------------
-|
-| PATCH /api/v1/tasks/:id
-|
-| Can update:
-|
-| title
-| description
-| status
-| priority
-| assigneeId
-| labels
-| dueDate
-|
-| version is required for optimistic concurrency.
-|
+| UPDATE TASK
 |--------------------------------------------------------------------------
 */
 
@@ -218,20 +373,45 @@ const updateTask = async (
   userId
 ) => {
 
-  if (!mongoose.Types.ObjectId.isValid(taskId)) {
-    const error = new Error("Invalid task ID");
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      taskId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid task ID"
+      );
+
     error.statusCode = 400;
+
     throw error;
   }
+
 
   const task =
-    await taskRepository.findTaskById(taskId);
+    await taskRepository.findTaskById(
+      taskId
+    );
+
 
   if (!task) {
-    const error = new Error("Task not found");
+
+    const error =
+      new Error(
+        "Task not found"
+      );
+
     error.statusCode = 404;
+
     throw error;
   }
+
+
+  /*
+   * Workspace membership
+   */
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -239,50 +419,70 @@ const updateTask = async (
       userId
     );
 
+
   if (!membership) {
-    const error = new Error(
-      "You do not have access to this task"
-    );
+
+    const error =
+      new Error(
+        "You do not have access to this task"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
 
-  if (!UPDATE_ROLES.includes(membership.role)) {
-    const error = new Error(
-      "You do not have permission to update this task"
-    );
-
-    error.statusCode = 403;
-    throw error;
-  }
 
   /*
-   * Version is required.
+   * Permission
    */
-  if (updateData.version === undefined) {
-    const error = new Error(
-      "Version is required for update"
-    );
+
+  if (
+    !UPDATE_ROLES.includes(
+      membership.role
+    )
+  ) {
+
+    const error =
+      new Error(
+        "You do not have permission to update this task"
+      );
+
+    error.statusCode = 403;
+
+    throw error;
+  }
+
+
+  /*
+   * Version required
+   */
+
+  if (
+    updateData.version === undefined
+  ) {
+
+    const error =
+      new Error(
+        "Version is required for update"
+      );
 
     error.statusCode = 400;
+
     throw error;
   }
 
-  /*
-   * Separate version from fields.
-   *
-   * version is NOT directly written to MongoDB.
-   * Repository increments it atomically.
-   */
+
   const {
     version,
     ...updateFields
   } = updateData;
 
+
   /*
-   * Optimistic concurrency update.
+   * Optimistic concurrency update
    */
+
   const updatedTask =
     await taskRepository.updateTaskWithVersion(
       taskId,
@@ -290,17 +490,66 @@ const updateTask = async (
       updateFields
     );
 
-  /*
-   * null means version mismatch.
-   */
+
   if (!updatedTask) {
-    const error = new Error(
-      "Task was modified by another user. Please refresh and try again."
-    );
+
+    const error =
+      new Error(
+        "Task was modified by another user. Please refresh and try again."
+      );
 
     error.statusCode = 409;
+
     throw error;
   }
+
+
+  /*
+   * MongoDB succeeded.
+   *
+   * Publish AFTER the database update.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.TASK_UPDATED,
+
+      workspaceId:
+        String(
+          updatedTask.workspaceId
+        ),
+
+      projectId:
+        String(
+          updatedTask.projectId
+        ),
+
+      entityId:
+        String(
+          updatedTask._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        task:
+          updatedTask
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
+  );
+
 
   return updatedTask;
 };
@@ -308,21 +557,7 @@ const updateTask = async (
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE TASK STATUS
-|--------------------------------------------------------------------------
-|
-| PATCH /api/v1/tasks/:id/status
-|
-| This is a specialized shortcut.
-|
-| It DOES NOT duplicate update logic.
-|
-| updateTaskStatus()
-|        ↓
-| updateTask()
-|        ↓
-| updateTaskWithVersion()
-|
+| UPDATE TASK STATUS / MOVE TASK
 |--------------------------------------------------------------------------
 */
 
@@ -333,24 +568,228 @@ const updateTaskStatus = async (
   userId
 ) => {
 
-  return await updateTask(
-    taskId,
-    {
-      status,
-      version
-    },
-    userId
+  /*
+   * Validate task ID
+   */
+
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      taskId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid task ID"
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+
+  /*
+   * Find current task
+   */
+
+  const task =
+    await taskRepository.findTaskById(
+      taskId
+    );
+
+
+  if (!task) {
+
+    const error =
+      new Error(
+        "Task not found"
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+  }
+
+
+  /*
+   * Workspace membership
+   */
+
+  const membership =
+    await workspaceMemberRepository.findMembership(
+      task.workspaceId,
+      userId
+    );
+
+
+  if (!membership) {
+
+    const error =
+      new Error(
+        "You do not have access to this task"
+      );
+
+    error.statusCode = 403;
+
+    throw error;
+  }
+
+
+  /*
+   * Permission
+   */
+
+  if (
+    !UPDATE_ROLES.includes(
+      membership.role
+    )
+  ) {
+
+    const error =
+      new Error(
+        "You do not have permission to update this task"
+      );
+
+    error.statusCode = 403;
+
+    throw error;
+  }
+
+
+  /*
+   * Version required
+   */
+
+  if (
+    version === undefined
+  ) {
+
+    const error =
+      new Error(
+        "Version is required for update"
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+
+  /*
+   * Status cannot be the same
+   */
+
+  const previousStatus =
+    task.status;
+
+
+  if (
+    previousStatus === status
+  ) {
+
+    const error =
+      new Error(
+        "New status is the same as the current status"
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+
+  /*
+   * Update MongoDB ONCE.
+   *
+   * IMPORTANT:
+   * Do NOT call updateTask() here.
+   * updateTask() itself publishes TASK_UPDATED.
+   *
+   * Calling it here would create duplicate updates/events.
+   */
+
+  const updatedTask =
+    await taskRepository.updateTaskWithVersion(
+      taskId,
+      version,
+      {
+        status
+      }
+    );
+
+
+  if (!updatedTask) {
+
+    const error =
+      new Error(
+        "Task was modified by another user. Please refresh and try again."
+      );
+
+    error.statusCode = 409;
+
+    throw error;
+  }
+
+
+  /*
+   * Publish TASK_MOVED AFTER MongoDB succeeds.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.TASK_MOVED,
+
+      workspaceId:
+        String(
+          updatedTask.workspaceId
+        ),
+
+      projectId:
+        String(
+          updatedTask.projectId
+        ),
+
+      entityId:
+        String(
+          updatedTask._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        from:
+          previousStatus,
+
+        to:
+          updatedTask.status,
+
+        version:
+          updatedTask.version
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
   );
+
+
+  return updatedTask;
 };
 
 
 /*
 |--------------------------------------------------------------------------
 | UPDATE TASK ASSIGNEE
-|--------------------------------------------------------------------------
-|
-| PATCH /api/v1/tasks/:id/assignee
-|
 |--------------------------------------------------------------------------
 */
 
@@ -362,12 +801,18 @@ const updateTaskAssignee = async (
 ) => {
 
   return await updateTask(
+
     taskId,
+
     {
       assigneeId,
+
       version
+
     },
+
     userId
+
   );
 };
 
@@ -383,20 +828,45 @@ const deleteTask = async (
   userId
 ) => {
 
-  if (!mongoose.Types.ObjectId.isValid(taskId)) {
-    const error = new Error("Invalid task ID");
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      taskId
+    )
+  ) {
+
+    const error =
+      new Error(
+        "Invalid task ID"
+      );
+
     error.statusCode = 400;
+
     throw error;
   }
+
 
   const task =
-    await taskRepository.findTaskById(taskId);
+    await taskRepository.findTaskById(
+      taskId
+    );
+
 
   if (!task) {
-    const error = new Error("Task not found");
+
+    const error =
+      new Error(
+        "Task not found"
+      );
+
     error.statusCode = 404;
+
     throw error;
   }
+
+
+  /*
+   * Workspace membership
+   */
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -404,46 +874,122 @@ const deleteTask = async (
       userId
     );
 
+
   if (!membership) {
-    const error = new Error(
-      "You do not have access to this task"
-    );
+
+    const error =
+      new Error(
+        "You do not have access to this task"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
 
-  if (!DELETE_ROLES.includes(membership.role)) {
-    const error = new Error(
-      "You do not have permission to delete this task"
-    );
+
+  /*
+   * Delete permission
+   */
+
+  if (
+    !DELETE_ROLES.includes(
+      membership.role
+    )
+  ) {
+
+    const error =
+      new Error(
+        "You do not have permission to delete this task"
+      );
 
     error.statusCode = 403;
+
     throw error;
   }
 
-  await taskRepository.deleteTask(taskId);
+
+  /*
+   * Delete from MongoDB
+   */
+
+  await taskRepository.deleteTask(
+    taskId
+  );
+
+
+  /*
+   * Publish AFTER successful deletion.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.TASK_DELETED,
+
+      workspaceId:
+        String(
+          task.workspaceId
+        ),
+
+      projectId:
+        String(
+          task.projectId
+        ),
+
+      entityId:
+        String(
+          task._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {}
+
+    });
+
+
+  await publishApplicationEvent(
+    event
+  );
+
 
   return {
-    id: task._id,
-    title: task.title,
-    description: task.description,
-    message: "Task deleted successfully"
+
+    id:
+      task._id,
+
+    title:
+      task.title,
+
+    description:
+      task.description,
+
+    message:
+      "Task deleted successfully"
+
   };
 };
 
 
 module.exports = {
+
   createTask,
+
   getTasksByProject,
+
   getTaskById,
 
-  // Generic update
   updateTask,
 
-  // Specialized updates
   updateTaskStatus,
+
   updateTaskAssignee,
 
   deleteTask
+
 };

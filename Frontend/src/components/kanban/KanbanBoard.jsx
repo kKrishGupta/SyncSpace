@@ -3,7 +3,8 @@ import React, {
   useMemo,
   useState
 } from "react";
-
+import useWebSocket from "../../hooks/useWebSocket";
+import {WS_EVENT_TYPES} from "../../websocket/websocketEvents";
 import {
   DndContext,
   DragOverlay,
@@ -38,6 +39,7 @@ const KanbanBoard = ({
   onAddTask,
   onTaskClick
 }) => {
+  const {isConnected , subscribe} = useWebSocket();
 
   const [tasks, setTasks] = useState([]);
 
@@ -111,6 +113,54 @@ const KanbanBoard = ({
 
   }, [projectId]);
 
+useEffect(() => {
+  const unsubscribe = subscribe(
+    WS_EVENT_TYPES.TASK_MOVED,
+    (event) => {
+      console.log(
+        "Received TASK_MOVED event:",
+        event
+      );
+
+      // Ignore events from another project
+      if (event.projectId !== projectId) {
+        return;
+      }
+
+      const taskId = event.entityId;
+      const newStatus = event.payload?.to;
+      const newVersion = event.payload?.version;
+
+      if (!taskId || !newStatus) {
+        console.warn(
+          "Invalid TASK_MOVED event:",
+          event
+        );
+        return;
+      }
+
+      setTasks((currentTasks) =>
+        currentTasks.map((task) => {
+          if (task._id !== taskId) {
+            return task;
+          }
+
+          return {
+            ...task,
+            status: newStatus,
+            ...(newVersion !== undefined
+              ? { version: newVersion }
+              : {})
+          };
+        })
+      );
+    }
+  );
+
+  return () => {
+    unsubscribe();
+  };
+}, [projectId, subscribe]);
 
   const groupedTasks = useMemo(() => {
 
@@ -512,7 +562,19 @@ const handleTaskClick = (
 
 
         <div className="kanban-actions">
+          <div className="flex items-center gap-2 text-xs">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isConnected
+                  ? "bg-green-500"
+                  : "bg-red-500"
+              }`}
+            />
 
+            {isConnected
+              ? "Live"
+              : "Offline"}
+          </div>
           {savingTaskId && (
             <span className="kanban-saving">
               Saving...

@@ -1,30 +1,39 @@
 const {
-  subscribeToEvents
-} = require("./redisPubSub");
+  subscribeToWorkspaceEvents
+} = require("./eventSubscriber");
+
 
 const initializeRedisEventHandler =
-  async () => {
+  async (
+    workspaceIds = []
+  ) => {
 
-    await subscribeToEvents(
-      (event) => {
+    if (
+      !Array.isArray(
+        workspaceIds
+      )
+    ) {
 
-        console.log(
-          "Redis event received:",
-          event
-        );
+      throw new Error(
+        "workspaceIds must be an array"
+      );
 
-        /*
-         * Later:
-         *
-         * connectionManager.broadcast(event)
-         *
-         * or workspace-specific delivery.
-         */
+    }
 
-      }
-    );
+
+    for (
+      const workspaceId
+      of workspaceIds
+    ) {
+
+      await subscribeToWorkspaceEvents(
+        workspaceId
+      );
+
+    }
 
   };
+
 
 module.exports =
   initializeRedisEventHandler;

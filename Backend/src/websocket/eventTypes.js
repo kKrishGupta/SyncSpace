@@ -1,44 +1,112 @@
 const EVENT_TYPES = {
-  // ==========================================
-  // Connection events
-  // ==========================================
 
-  CONNECTED: "CONNECTED",
-  DISCONNECTED: "DISCONNECTED",
+  /*
+  |--------------------------------------------------------------------------
+  | Connection
+  |--------------------------------------------------------------------------
+  */
 
-  PING: "PING",
-  PONG: "PONG",
+  CONNECTED:
+    "CONNECTED",
 
-  // ==========================================
-  // Task events
-  // ==========================================
+  DISCONNECTED:
+    "DISCONNECTED",
 
-  TASK_CREATED: "TASK_CREATED",
-  TASK_UPDATED: "TASK_UPDATED",
-  TASK_MOVED: "TASK_MOVED",
-  TASK_DELETED: "TASK_DELETED",
 
-  // ==========================================
-  // Comment events
-  // ==========================================
+  /*
+  |--------------------------------------------------------------------------
+  | Ping / Pong
+  |--------------------------------------------------------------------------
+  */
 
-  COMMENT_CREATED: "COMMENT_CREATED",
-  COMMENT_UPDATED: "COMMENT_UPDATED",
-  COMMENT_DELETED: "COMMENT_DELETED",
+  PING:
+    "PING",
 
-  // ==========================================
-  // Presence events
-  // ==========================================
+  PONG:
+    "PONG",
 
-  USER_ONLINE: "USER_ONLINE",
-  USER_OFFLINE: "USER_OFFLINE",
 
-  // ==========================================
-  // Collaboration events
-  // ==========================================
+  /*
+  |--------------------------------------------------------------------------
+  | Workspace commands
+  |--------------------------------------------------------------------------
+  */
 
-  TYPING_STARTED: "TYPING_STARTED",
-  TYPING_STOPPED: "TYPING_STOPPED"
+  WORKSPACE_JOIN:
+    "WORKSPACE_JOIN",
+
+  WORKSPACE_LEAVE:
+    "WORKSPACE_LEAVE",
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Presence
+  |--------------------------------------------------------------------------
+  */
+
+  PRESENCE_HEARTBEAT:
+    "PRESENCE_HEARTBEAT",
+
+  USER_ONLINE:
+    "USER_ONLINE",
+
+  USER_OFFLINE:
+    "USER_OFFLINE",
+
+  PRESENCE_SNAPSHOT:
+    "PRESENCE_SNAPSHOT",
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Collaboration commands
+  |--------------------------------------------------------------------------
+  */
+
+  TYPING_STARTED:
+    "TYPING_STARTED",
+
+  TYPING_STOPPED:
+    "TYPING_STOPPED",
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Task events
+  |--------------------------------------------------------------------------
+  */
+
+  TASK_CREATED:
+    "TASK_CREATED",
+
+  TASK_UPDATED:
+    "TASK_UPDATED",
+
+  TASK_MOVED:
+    "TASK_MOVED",
+
+  TASK_DELETED:
+    "TASK_DELETED",
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Comment events
+  |--------------------------------------------------------------------------
+  */
+
+  COMMENT_CREATED:
+    "COMMENT_CREATED",
+
+  COMMENT_UPDATED:
+    "COMMENT_UPDATED",
+
+  COMMENT_DELETED:
+    "COMMENT_DELETED"
+
 };
 
-module.exports = EVENT_TYPES;
+
+module.exports =
+  EVENT_TYPES;

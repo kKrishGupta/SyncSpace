@@ -4,13 +4,17 @@ import { useNavigate } from "react-router-dom";
 import {
   getWorkspaces
 } from "../../services/workspaceService";
-
+import useWebSocket from "../../hooks/useWebSocket";
 import {
   getStoredWorkspaceId,
   setStoredWorkspaceId
 } from "../../utils/workspaceStorage";
 
 const WorkspaceSelector = () => {
+  const {
+  joinWorkspace,
+  leaveWorkspace
+} = useWebSocket();
   const navigate = useNavigate();
 
   const [workspaces, setWorkspaces] = useState([]);
@@ -65,16 +69,38 @@ const WorkspaceSelector = () => {
   }, []);
 
   const handleWorkspaceSelect = (workspace) => {
-    setSelectedWorkspace(workspace);
+  if (!workspace?._id) {
+    return;
+  }
 
-    setStoredWorkspaceId(workspace._id);
+  const previousWorkspaceId =
+    selectedWorkspace?._id;
 
-    setOpen(false);
-
-    navigate(
-      `/workspaces/${workspace._id}`
+  if (
+    previousWorkspaceId &&
+    previousWorkspaceId !== workspace._id
+  ) {
+    leaveWorkspace(
+      previousWorkspaceId
     );
-  };
+  }
+
+  setSelectedWorkspace(workspace);
+
+  setStoredWorkspaceId(
+    workspace._id
+  );
+
+  setOpen(false);
+
+  joinWorkspace(
+    workspace._id
+  );
+
+  navigate(
+    `/workspaces/${workspace._id}`
+  );
+};
 
   if (loading) {
     return (

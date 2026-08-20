@@ -1,4 +1,7 @@
-const { randomUUID } = require("crypto");
+const {
+  randomUUID
+} = require("crypto");
+
 
 const createEvent = ({
   type,
@@ -8,25 +11,77 @@ const createEvent = ({
   actorId,
   payload = {}
 }) => {
-  if (!type) {
-    throw new Error("Event type is required");
+
+  if (
+    !type
+  ) {
+
+    throw new Error(
+      "Event type is required"
+    );
+
   }
 
-  if (!actorId) {
-    throw new Error("Actor ID is required");
+
+  if (
+    !actorId
+  ) {
+
+    throw new Error(
+      "Actor ID is required"
+    );
+
   }
+
+
+  if (
+    !workspaceId
+  ) {
+
+    throw new Error(
+      "Workspace ID is required"
+    );
+
+  }
+
 
   return {
-    eventId: randomUUID(),
+
+    eventId:
+      randomUUID(),
+
     type,
-    workspaceId,
-    projectId,
-    entityId,
-    actorId,
-    timestamp: new Date().toISOString(),
+
+    workspaceId:
+      String(
+        workspaceId
+      ),
+
+    projectId:
+      projectId
+        ? String(projectId)
+        : null,
+
+    entityId:
+      entityId
+        ? String(entityId)
+        : null,
+
+    actorId:
+      String(
+        actorId
+      ),
+
+    timestamp:
+      new Date()
+        .toISOString(),
+
     payload
+
   };
+
 };
+
 
 module.exports = {
   createEvent

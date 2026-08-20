@@ -1,14 +1,32 @@
 const mongoose =
   require("mongoose");
 
+
 const taskRepository =
   require("../repositories/taskRepository");
+
 
 const commentRepository =
   require("../repositories/commentRepository");
 
+
 const workspaceMemberRepository =
   require("../repositories/workspaceMemberRepository");
+
+
+const {
+  createEvent
+} = require("../websocket/eventFactory");
+
+
+const EVENT_TYPES =
+  require("../websocket/eventTypes");
+
+
+const {
+  publishApplicationEvent
+} =
+  require("../websocket/eventPublisher");
 
 
 const UPDATE_ROLES = [
@@ -60,6 +78,26 @@ const createComment = async ({
 
 
   /*
+   * Validate content
+   */
+
+  if (
+    !content ||
+    !content.trim()
+  ) {
+
+    const error =
+      new Error(
+        "Comment content is required"
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+
+  /*
    * Find task
    */
 
@@ -83,7 +121,7 @@ const createComment = async ({
 
 
   /*
-   * Check workspace membership
+   * Workspace membership
    */
 
   const membership =
@@ -107,11 +145,12 @@ const createComment = async ({
 
 
   /*
-   * If replying to another comment,
-   * validate the parent.
+   * Validate parent comment
    */
 
-  if (parentCommentId) {
+  if (
+    parentCommentId
+  ) {
 
     if (
       !mongoose.Types.ObjectId.isValid(
@@ -150,13 +189,17 @@ const createComment = async ({
 
 
     /*
-     * Parent must belong to
-     * the same task.
+     * Parent must belong
+     * to same task.
      */
 
     if (
-      parentComment.taskId.toString() !==
-      taskId.toString()
+      String(
+        parentComment.taskId
+      ) !==
+      String(
+        taskId
+      )
     ) {
 
       const error =
@@ -173,16 +216,78 @@ const createComment = async ({
 
 
   /*
-   * Create comment
+   * Create comment in MongoDB
    */
 
-  return await commentRepository.createComment({
-    taskId: task._id,
-    authorId: userId,
-    content: content.trim(),
-    mentions,
-    parentCommentId
-  });
+  const comment =
+    await commentRepository.createComment({
+
+      taskId:
+        task._id,
+
+      authorId:
+        userId,
+
+      content:
+        content.trim(),
+
+      mentions,
+
+      parentCommentId
+
+    });
+
+
+  /*
+   * MongoDB succeeded.
+   *
+   * Publish COMMENT_CREATED.
+   *
+   * entityId = TASK ID
+   * because comments belong to a task.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.COMMENT_CREATED,
+
+      workspaceId:
+        String(
+          task.workspaceId
+        ),
+
+      projectId:
+        String(
+          task.projectId
+        ),
+
+      entityId:
+        String(
+          task._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        comment
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
+  );
+
+
+  return comment;
 };
 
 
@@ -296,6 +401,26 @@ const updateComment = async (
   }
 
 
+  if (
+    !content ||
+    !content.trim()
+  ) {
+
+    const error =
+      new Error(
+        "Comment content is required"
+      );
+
+    error.statusCode = 400;
+
+    throw error;
+  }
+
+
+  /*
+   * Find comment
+   */
+
   const comment =
     await commentRepository.findCommentById(
       commentId
@@ -316,8 +441,7 @@ const updateComment = async (
 
 
   /*
-   * Find the task so we can
-   * verify workspace membership.
+   * Find task
    */
 
   const task =
@@ -338,6 +462,10 @@ const updateComment = async (
     throw error;
   }
 
+
+  /*
+   * Workspace membership
+   */
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -360,13 +488,16 @@ const updateComment = async (
 
 
   /*
-   * Only comment author can edit
-   * their own comment.
+   * Only author can edit.
    */
 
   if (
-    comment.authorId.toString() !==
-    userId.toString()
+    String(
+      comment.authorId
+    ) !==
+    String(
+      userId
+    )
   ) {
 
     const error =
@@ -380,12 +511,86 @@ const updateComment = async (
   }
 
 
-  return await commentRepository.updateComment(
-    commentId,
-    {
-      content: content.trim()
-    }
+  /*
+   * IMPORTANT:
+   *
+   * Update MongoDB FIRST.
+   */
+
+  const updatedComment =
+    await commentRepository.updateComment(
+
+      commentId,
+
+      {
+        content:
+          content.trim()
+      }
+
+    );
+
+
+  if (!updatedComment) {
+
+    const error =
+      new Error(
+        "Comment could not be updated"
+      );
+
+    error.statusCode = 404;
+
+    throw error;
+  }
+
+
+  /*
+   * MongoDB succeeded.
+   *
+   * NOW publish event.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.COMMENT_UPDATED,
+
+      workspaceId:
+        String(
+          task.workspaceId
+        ),
+
+      projectId:
+        String(
+          task.projectId
+        ),
+
+      entityId:
+        String(
+          task._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        comment:
+          updatedComment
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
   );
+
+
+  return updatedComment;
 };
 
 
@@ -417,6 +622,10 @@ const deleteComment = async (
   }
 
 
+  /*
+   * Find comment
+   */
+
   const comment =
     await commentRepository.findCommentById(
       commentId
@@ -436,6 +645,10 @@ const deleteComment = async (
   }
 
 
+  /*
+   * Find task
+   */
+
   const task =
     await taskRepository.findTaskById(
       comment.taskId
@@ -454,6 +667,10 @@ const deleteComment = async (
     throw error;
   }
 
+
+  /*
+   * Workspace membership
+   */
 
   const membership =
     await workspaceMemberRepository.findMembership(
@@ -482,8 +699,12 @@ const deleteComment = async (
    */
 
   const isAuthor =
-    comment.authorId.toString() ===
-    userId.toString();
+    String(
+      comment.authorId
+    ) ===
+    String(
+      userId
+    );
 
 
   const isAdmin =
@@ -508,21 +729,90 @@ const deleteComment = async (
   }
 
 
+  /*
+   * Delete from MongoDB FIRST.
+   */
+
   await commentRepository.deleteComment(
     commentId
   );
 
 
+  /*
+   * MongoDB succeeded.
+   *
+   * Do NOT send deleted comment.
+   *
+   * entityId = taskId
+   * payload = {}
+   *
+   * commentId goes in payload so
+   * frontend knows exactly what to remove.
+   */
+
+  const event =
+    createEvent({
+
+      type:
+        EVENT_TYPES.COMMENT_DELETED,
+
+      workspaceId:
+        String(
+          task.workspaceId
+        ),
+
+      projectId:
+        String(
+          task.projectId
+        ),
+
+      entityId:
+        String(
+          task._id
+        ),
+
+      actorId:
+        String(
+          userId
+        ),
+
+      payload: {
+
+        commentId:
+          String(
+            commentId
+          )
+
+      }
+
+    });
+
+
+  await publishApplicationEvent(
+    event
+  );
+
+
   return {
-    id: commentId,
-    message: "Comment deleted successfully"
+
+    id:
+      commentId,
+
+    message:
+      "Comment deleted successfully"
+
   };
 };
 
 
 module.exports = {
+
   createComment,
+
   getCommentsByTask,
+
   updateComment,
+
   deleteComment
+
 };
