@@ -59,8 +59,15 @@ export const AuthProvider = ({ children }) => {
 
     initAuth();
 
+    const handleLogoutEvent = () => {
+      logout();
+    };
+
+    window.addEventListener('auth:logout', handleLogoutEvent);
+
     return () => {
       websocketClient.disconnect();
+      window.removeEventListener('auth:logout', handleLogoutEvent);
     };
   }, []);
 

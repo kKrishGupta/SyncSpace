@@ -368,7 +368,12 @@ class WebSocketClient {
       setTimeout(() => {
         this.reconnectTimer = null;
 
-        this.connect(this.token);
+        const currentToken = localStorage.getItem('accessToken');
+        if (currentToken) {
+          this.connect(currentToken);
+        } else {
+          this.shouldReconnect = false;
+        }
       }, delay);
   }
 
