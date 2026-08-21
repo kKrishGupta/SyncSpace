@@ -2,30 +2,49 @@ const mongoose = require("mongoose");
 
 const fileSchema = new mongoose.Schema(
   {
-    fileName: {
+    name: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
-    originalName: {
+    path: {
       type: String,
-      required: true
+      required: true,
+      trim: true
+    },
+    type: {
+      type: String,
+      enum: ["FILE", "FOLDER"],
+      default: "FILE"
+    },
+    parentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "File",
+      default: null
+    },
+    language: {
+      type: String,
+      default: "javascript"
+    },
+    content: {
+      type: String,
+      default: ""
     },
     size: {
       type: Number,
-      required: true
+      default: 0
     },
     mimeType: {
       type: String,
-      required: true
+      default: "text/plain"
     },
     storageKey: {
       type: String,
-      required: true // Path or S3 key
+      default: null
     },
-    uploadedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
+    version: {
+      type: Number,
+      default: 1
     },
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -34,16 +53,30 @@ const fileSchema = new mongoose.Schema(
     },
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Project"
+      ref: "Project",
+      required: true,
+      index: true
     },
     taskId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Task"
+      ref: "Task",
+      default: null
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
     }
   },
   {
     timestamps: true
   }
 );
+
+fileSchema.index({ projectId: 1, path: 1 }, { unique: true });
 
 module.exports = mongoose.model("File", fileSchema);

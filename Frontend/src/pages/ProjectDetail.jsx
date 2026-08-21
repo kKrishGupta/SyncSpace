@@ -1,39 +1,32 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Code2, GitPullRequest, AlertOctagon, CheckCircle2, Users, Activity as ActivityIcon } from "lucide-react";
 
 import { getProjectById } from "../services/projectService";
 import KanbanBoard from "../components/kanban/KanbanBoard";
+import WorkspaceMembers from "../components/workspace/WorkspaceMembers";
+import ActivityFeed from "../components/ActivityFeed";
+import CodeReviews from "./CodeReviews";
+import BlockersAndDecisions from "../components/project/BlockersAndDecisions";
+
 const ProjectDetail = () => {
   const { id } = useParams();
 
   const [project, setProject] = useState(null);
   const [activeTab, setActiveTab] = useState("Overview");
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
 
   useEffect(() => {
     const loadProject = async () => {
       try {
         setLoading(true);
         setError("");
-
         const response = await getProjectById(id);
-
         setProject(response.data);
-
-      } catch (error) {
-        console.error(
-          "Failed to load project:",
-          error
-        );
-
-        setError(
-          error.message ||
-          "Failed to load project."
-        );
-
+      } catch (err) {
+        console.error("Failed to load project:", err);
+        setError(err.message || "Failed to load project.");
       } finally {
         setLoading(false);
       }
@@ -42,158 +35,53 @@ const ProjectDetail = () => {
     loadProject();
   }, [id]);
 
-
-  // =====================================================
-  // Loading
-  // =====================================================
-
-  if (loading) {
-    return (
-      <div className="page">
-        <div className="project-detail-loading">
-          Loading project...
-        </div>
-      </div>
-    );
-  }
-
-
-  // =====================================================
-  // Error
-  // =====================================================
-
-  if (error) {
-    return (
-      <div className="page">
-
-        <div className="project-detail-error">
-          <h2>
-            Unable to load project
-          </h2>
-
-          <p>
-            {error}
-          </p>
-
-          <Link
-            to="/projects"
-            className="secondary-button"
-          >
-            ← Back to Projects
-          </Link>
-        </div>
-
-      </div>
-    );
-  }
-
-
-  // =====================================================
-  // Project not found
-  // =====================================================
-
-  if (!project) {
-    return (
-      <div className="page">
-
-        <div className="project-detail-error">
-
-          <h2>
-            Project not found
-          </h2>
-
-          <p>
-            This project may have been deleted
-            or you may not have access to it.
-          </p>
-
-          <Link
-            to="/projects"
-            className="secondary-button"
-          >
-            ← Back to Projects
-          </Link>
-
-        </div>
-
-      </div>
-    );
-  }
-
-
-  // =====================================================
-  // Main UI
-  // =====================================================
+  if (loading) return <div className="page"><div className="project-detail-loading">Loading project...</div></div>;
+  if (error || !project) return <div className="page"><div className="project-detail-error"><h2>Unable to load project</h2><p>{error}</p><Link to="/projects" className="secondary-button">← Back to Projects</Link></div></div>;
 
   return (
     <div className="page project-detail-page">
-
-      {/* ================================================
-          Breadcrumb
-      ================================================= */}
-
+      {/* Breadcrumb */}
       <div className="project-breadcrumb">
-
-        <Link to="/projects">
-          Projects
-        </Link>
-
-        <span>
-          /
-        </span>
-
-        <span>
-          {project.name}
-        </span>
-
+        <Link to="/projects">Projects</Link>
+        <span>/</span>
+        <span>{project.name}</span>
       </div>
 
-
-      {/* ================================================
-          Project Header
-      ================================================= */}
-
-      <section className="project-detail-header">
-
+      {/* Project Header with Code Room CTA */}
+      <section className="project-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="project-detail-main">
-
-          <div className="project-key-large">
-            {project.key}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="project-key-large">{project.key}</span>
+            <span className={`status-badge ${project.status?.toLowerCase()}`}>{project.status}</span>
           </div>
-
-          <h1>
-            {project.name}
-          </h1>
-
-          <p>
-            {project.description ||
-              "No description provided."}
-          </p>
-
+          <h1 style={{ marginTop: '6px' }}>{project.name}</h1>
+          <p>{project.description || "No description provided."}</p>
         </div>
 
-
-        <div className="project-detail-status">
-
-          <span
-            className={`status-badge ${
-              project.status?.toLowerCase()
-            }`}
+        <div className="project-header-actions">
+          <Link
+            to={`/projects/${id}/coderoom`}
+            className="primary-button"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              backgroundColor: '#238636',
+              padding: '10px 18px',
+              fontSize: '14px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              boxShadow: '0 0 12px rgba(35, 134, 54, 0.4)'
+            }}
           >
-            {project.status}
-          </span>
-
+            <Code2 size={18} /> Open Code Room 🟢
+          </Link>
         </div>
-
       </section>
 
-
-      {/* ================================================
-          Project Navigation
-      ================================================= */}
-
+      {/* Project Navigation Tabs */}
       <div className="project-tabs">
-        {["Overview", "Members", "Projects", "Activity"].map((tab) => (
+        {["Overview", "Kanban Board", "Code Reviews", "Blockers & Decisions", "Members", "Activity"].map((tab) => (
           <button
             key={tab}
             className={`project-tab ${activeTab === tab ? "active" : ""}`}
@@ -205,60 +93,38 @@ const ProjectDetail = () => {
         ))}
       </div>
 
-
-      {/* ================================================
-          Overview
-      ================================================= */}
-
+      {/* Overview Tab */}
       {activeTab === "Overview" && (
         <section className="project-overview-grid">
-
-          {/* Project Information */}
-
-          <div className="panel">
-            <div className="panel-header">
+          {/* Health Stats */}
+          <div className="panel" style={{ padding: '16px' }}>
+            <div className="panel-header" style={{ marginBottom: '14px' }}>
               <div>
-                <div className="panel-eyebrow">
-                  PROJECT
-                </div>
-                <h2>
-                  Overview
-                </h2>
+                <div className="panel-eyebrow">DASHBOARD</div>
+                <h2>Project Health</h2>
               </div>
             </div>
-
-            <div className="project-info-list">
-              <div className="project-info-row">
-                <span>Project key</span>
-                <strong>{project.key}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: '#3fb950' }}>75%</div>
+                <div style={{ fontSize: '12px', color: '#8b949e' }}>Task Progress</div>
               </div>
-
-              <div className="project-info-row">
-                <span>Status</span>
-                <strong>{project.status}</strong>
+              <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: '#58a6ff' }}>1</div>
+                <div style={{ fontSize: '12px', color: '#8b949e' }}>Open Review</div>
               </div>
-
-              <div className="project-info-row">
-                <span>Created</span>
-                <strong>
-                  {project.createdAt
-                    ? new Date(project.createdAt).toLocaleDateString()
-                    : "—"}
-                </strong>
+              <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: '#f85149' }}>0</div>
+                <div style={{ fontSize: '12px', color: '#8b949e' }}>Active Blockers</div>
               </div>
-
-              <div className="project-info-row">
-                <span>Last updated</span>
-                <strong>
-                  {project.updatedAt
-                    ? new Date(project.updatedAt).toLocaleDateString()
-                    : "—"}
-                </strong>
+              <div style={{ background: '#161b22', border: '1px solid #30363d', borderRadius: '8px', padding: '14px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', fontWeight: 700, color: '#a371f7' }}>🟢 Live</div>
+                <div style={{ fontSize: '12px', color: '#8b949e' }}>Code Room</div>
               </div>
             </div>
           </div>
 
-          {/* Members Overview snippet */}
+          {/* Members Overview */}
           <div className="panel">
             <div className="panel-header">
               <div>
@@ -266,19 +132,33 @@ const ProjectDetail = () => {
                 <h2>Members</h2>
               </div>
             </div>
-            <div className="project-placeholder">
-              <div className="placeholder-icon">◉</div>
-              <p>Project members will appear here.</p>
+            <div style={{ padding: '20px' }}>
+              <WorkspaceMembers workspaceId={project.workspaceId._id || project.workspaceId} />
             </div>
           </div>
-
         </section>
       )}
 
+      {/* Kanban Board Tab */}
+      {activeTab === "Kanban Board" && (
+        <section className="project-kanban-section">
+          <KanbanBoard projectId={id} />
+        </section>
+      )}
 
-      {/* ================================================
-          Members Tab
-      ================================================= */}
+      {/* Code Reviews Tab */}
+      {activeTab === "Code Reviews" && (
+        <CodeReviews />
+      )}
+
+      {/* Blockers & Decisions Tab */}
+      {activeTab === "Blockers & Decisions" && (
+        <section className="panel">
+          <BlockersAndDecisions projectId={id} />
+        </section>
+      )}
+
+      {/* Members Tab */}
       {activeTab === "Members" && (
         <section className="panel">
           <div className="panel-header">
@@ -287,18 +167,13 @@ const ProjectDetail = () => {
               <h2>Members</h2>
             </div>
           </div>
-          <div className="project-placeholder">
-            <div className="placeholder-icon">◉</div>
-            <p>Project members will appear here.</p>
+          <div style={{ padding: '20px' }}>
+            <WorkspaceMembers workspaceId={project.workspaceId._id || project.workspaceId} />
           </div>
         </section>
       )}
 
-
-      {/* ================================================
-          Activity
-      ================================================= */}
-
+      {/* Activity Tab */}
       {activeTab === "Activity" && (
         <section className="panel project-activity-panel">
           <div className="panel-header">
@@ -307,31 +182,11 @@ const ProjectDetail = () => {
               <h2>Activity</h2>
             </div>
           </div>
-          <div className="project-placeholder">
-            <div className="placeholder-icon">◌</div>
-            <p>Project activity will appear here.</p>
+          <div style={{ padding: '20px' }}>
+            <ActivityFeed projectId={project._id} />
           </div>
         </section>
       )}
-
-
-      {/* ================================================
-          Projects (Kanban Board)
-      ================================================= */}
-      {activeTab === "Projects" && (
-        <section className="project-kanban-section">
-          <KanbanBoard
-            projectId={id}
-            onAddTask={(status) => {
-              console.log("Create task with status:", status);
-            }}
-            onTaskClick={(task) => {
-              console.log("Open task:", task);
-            }}
-          />
-        </section>
-      )}
-
     </div>
   );
 };

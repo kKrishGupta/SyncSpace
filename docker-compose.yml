@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: syncspace-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=syncspace
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    container_name: syncspace-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: syncspace-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongodb:27017/syncspace
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=production_super_secret_jwt_key_syncspace_2026
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      - mongodb
+      - redis
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: syncspace-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api/v1
+      - VITE_WS_URL=ws://localhost:5000/ws
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

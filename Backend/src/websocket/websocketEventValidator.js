@@ -63,19 +63,16 @@ const SERVER_ONLY_EVENTS =
 
 const CLIENT_COMMAND_EVENTS =
   new Set([
-
     EVENT_TYPES.PING,
-
     EVENT_TYPES.PRESENCE_HEARTBEAT,
-
     EVENT_TYPES.WORKSPACE_JOIN,
-
     EVENT_TYPES.WORKSPACE_LEAVE,
-
+    EVENT_TYPES.FILE_OPENED,
+    EVENT_TYPES.FILE_CLOSED,
+    EVENT_TYPES.CURSOR_MOVED,
+    EVENT_TYPES.FILE_EDITED,
     EVENT_TYPES.TYPING_STARTED,
-
     EVENT_TYPES.TYPING_STOPPED
-
   ]);
 
 
@@ -740,62 +737,63 @@ const validateIncomingEvent =
       });
 
 
-      const project =
+      if (data.projectId) {
         await validateProjectAccess({
-
           userId,
-
           workspaceId,
-
-          projectId:
-            data.projectId
-
+          projectId: data.projectId
         });
-
-
-      const task =
-        await validateTaskAccess({
-
-          userId,
-
-          workspaceId,
-
-          projectId:
-            data.projectId,
-
-          taskId:
-            data.entityId
-
-        });
-
+      }
 
       return {
-
-        type:
-          data.type,
-
+        type: data.type,
         userId,
-
         workspaceId,
-
-        projectId:
-          String(
-            project._id
-          ),
-
-        taskId:
-          String(
-            task._id
-          )
-
+        projectId: data.projectId ? String(data.projectId) : null,
+        taskId: data.entityId ? String(data.entityId) : null
       };
-
     }
 
+    /*
+     * ------------------------------------------------------
+     * FILE OPENED / CLOSED / CURSOR MOVED / FILE EDITED
+     * ------------------------------------------------------
+     */
+    if (
+      data.type === EVENT_TYPES.FILE_OPENED ||
+      data.type === EVENT_TYPES.FILE_CLOSED ||
+      data.type === EVENT_TYPES.CURSOR_MOVED ||
+      data.type === EVENT_TYPES.FILE_EDITED
+    ) {
+      if (!ws.workspaceIds || !ws.workspaceIds.size) {
+        throw createValidationError("Workspace subscription required", 403);
+      }
 
-    throw createValidationError(
-      "Unsupported WebSocket command"
-    );
+      const workspaceId = validateWorkspaceId(data.workspaceId);
+
+      if (!ws.workspaceIds.has(workspaceId)) {
+        throw createValidationError("Workspace access denied", 403);
+      }
+
+      await assertWorkspaceAccess({ userId, workspaceId });
+
+      if (data.projectId) {
+        await validateProjectAccess({
+          userId,
+          workspaceId,
+          projectId: data.projectId
+        });
+      }
+
+      return {
+        type: data.type,
+        userId,
+        workspaceId,
+        projectId: data.projectId ? String(data.projectId) : null
+      };
+    }
+
+    throw createValidationError("Unsupported WebSocket command");
 
   };
 

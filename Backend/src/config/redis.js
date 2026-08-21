@@ -15,8 +15,8 @@ redisClient.on("ready" ,() =>{
   logger.info("Redis connected and ready to use")
 });
 
-redisClient.on("error",() =>{
-  logger.error("Redis connection error",error.message);
+redisClient.on("error", (error) => {
+  logger.error("Redis connection error: " + (error?.message || error));
 });
 
 redisClient.on("reconnecting",() =>{

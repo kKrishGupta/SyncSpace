@@ -6,11 +6,14 @@ import {
 } from "../services/workspaceService";
 
 import {
-  getProjectsByWorkspace
+  getProjectsByWorkspace,
+  createProject
 } from "../services/projectService";
 
 import ActivityFeed from "../components/ActivityFeed";
 import WorkspaceMembers from "../components/workspace/WorkspaceMembers";
+import CreateProjectModal from "../features/projects/CreateProjectModal";
+import ProjectCard from "../features/projects/ProjectCard";
 
 const Workspace = () => {
   const { id } = useParams();
@@ -21,6 +24,26 @@ const Workspace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("projects");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const handleCreateProject = async (projectData) => {
+    try {
+      setCreating(true);
+      const response = await createProject(id, projectData);
+      const newProject = response.data;
+      if (!newProject._id && newProject.id) {
+        newProject._id = newProject.id;
+      }
+      setProjects((previous) => [newProject, ...previous]);
+      setModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      setError(err?.data?.message || err?.message || "Failed to create project");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   useEffect(() => {
     const loadWorkspace = async () => {
@@ -148,7 +171,7 @@ const Workspace = () => {
               <h2>Projects</h2>
               <p>Projects inside this workspace.</p>
             </div>
-            <button className="primary-button">+ New Project</button>
+            <button className="primary-button" onClick={() => setModalOpen(true)}>+ New Project</button>
           </div>
 
           {projects.length === 0 ? (
@@ -158,17 +181,7 @@ const Workspace = () => {
           ) : (
             <div className="project-grid">
               {projects.map((project) => (
-                <div className="project-card" key={project._id}>
-                  <div className="project-card-top">
-                    <div className="project-key">{project.key}</div>
-                    <span className={`status-badge ${project.status?.toLowerCase()}`}>
-                      {project.status}
-                    </span>
-                  </div>
-                  <h3>{project.name}</h3>
-                  <p>{project.description || "No description provided."}</p>
-                  <div className="project-card-footer">View project →</div>
-                </div>
+                <ProjectCard key={project._id} project={project} />
               ))}
             </div>
           )}
@@ -198,6 +211,13 @@ const Workspace = () => {
           <ActivityFeed workspaceId={workspace._id} />
         </section>
       )}
+
+      <CreateProjectModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onCreate={handleCreateProject}
+        loading={creating}
+      />
 
     </div>
   );

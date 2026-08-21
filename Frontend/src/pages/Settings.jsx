@@ -282,7 +282,7 @@ const Settings = () => {
       </div>
 
       <div className="settings-layout">
-        <aside className="settings-sidebar w-64 flex-shrink-0">
+        <aside className="settings-sidebar">
           <nav className="flex flex-col space-y-1">
             {["Profile", "Account", "Appearance", "Notifications", "Security", "Workspace", "Roles & Permissions"].map((tab) => (
               <button

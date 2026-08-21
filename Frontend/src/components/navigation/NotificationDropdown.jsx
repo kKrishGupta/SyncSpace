@@ -3,12 +3,14 @@ import { notificationService } from '../../services/notificationService';
 import { Bell, Check, CheckCircle2 } from 'lucide-react';
 import websocketClient from '../../websocket/websocketClient';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const NotificationDropdown = () => {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -43,7 +45,8 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleMarkAsRead = async (id) => {
+  const handleMarkAsRead = async (id, e) => {
+    if (e) e.stopPropagation();
     try {
       await notificationService.markAsRead(id);
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
@@ -60,6 +63,27 @@ const NotificationDropdown = () => {
       setUnreadCount(0);
     } catch (error) {
       console.error("Failed to mark all as read", error);
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.read) {
+      handleMarkAsRead(notif._id);
+    }
+    setIsOpen(false);
+    
+    switch (notif.entityType) {
+      case 'Workspace':
+        navigate(`/workspaces/${notif.entityId}`);
+        break;
+      case 'Project':
+        navigate(`/projects/${notif.entityId}`);
+        break;
+      case 'Task':
+        navigate(`/tasks`); 
+        break;
+      default:
+        break;
     }
   };
 
@@ -101,7 +125,8 @@ const NotificationDropdown = () => {
               notifications.map(notif => (
                 <div 
                   key={notif._id} 
-                  className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-start gap-3 border-b border-gray-100 dark:border-gray-750 last:border-0 ${notif.read ? 'opacity-60' : 'bg-blue-50/50 dark:bg-blue-900/10'}`}
+                  onClick={() => handleNotificationClick(notif)}
+                  className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-start gap-3 border-b border-gray-100 dark:border-gray-750 last:border-0 cursor-pointer ${notif.read ? 'opacity-60' : 'bg-blue-50/50 dark:bg-blue-900/10'}`}
                 >
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
@@ -118,7 +143,7 @@ const NotificationDropdown = () => {
                   </div>
                   {!notif.read && (
                     <button 
-                      onClick={() => handleMarkAsRead(notif._id)}
+                      onClick={(e) => handleMarkAsRead(notif._id, e)}
                       className="text-gray-400 hover:text-indigo-600"
                       title="Mark as read"
                     >

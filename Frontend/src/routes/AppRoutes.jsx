@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
 import ProtectedRoute from "../components/ProtectedRoute";
 import ProjectDetail from "../pages/ProjectDetail";
+import CodeRoom from "../pages/CodeRoom";
 import Dashboard from "../pages/Dashboard";
 import MyTasks from "../pages/MyTasks";
 import Projects from "../pages/Projects";
@@ -19,6 +20,10 @@ const AppRoutes = () => {
       <Route path="/register" element={<Register />} />
 
       <Route element={<ProtectedRoute />}>
+        {/* Code Room uses a full-screen IDE layout */}
+        <Route path="/projects/:id/coderoom" element={<CodeRoom />} />
+
+        {/* General App Pages use standard AppLayout */}
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tasks" element={<MyTasks />} />
@@ -38,5 +43,3 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
-
-

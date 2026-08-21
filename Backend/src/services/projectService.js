@@ -2,10 +2,7 @@ const mongoose = require("mongoose");
 
 const projectRepository = require("../repositories/projectRepository");
 const workspaceMemberRepository = require("../repositories/workspaceMemberRepository");
-
-const CREATE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'];
-const UPDATE_ROLES = ['OWNER', 'ADMIN', 'MANAGER'];
-const DELETE_ROLES = ['OWNER', 'ADMIN'];
+const { hasPermission } = require("../websocket/workspaceAuthorization");
 
 const createProject = async ({ workspaceId, name, key, description, userId }) => {
 
@@ -34,13 +31,10 @@ const createProject = async ({ workspaceId, name, key, description, userId }) =>
     throw error;
   }
 
-  if (!CREATE_ROLES.includes(membership.role)) {
-  const error = new Error(
-    "You do not have permission to create projects"
-  );
-
-  error.statusCode = 403;
-  throw error;
+  if (!hasPermission(membership.role, 'project.create')) {
+    const error = new Error("You do not have permission to create projects");
+    error.statusCode = 403;
+    throw error;
   }
 
   try {
@@ -80,6 +74,12 @@ const getProjectsByWorkspace = async (workspaceId,userId) => {
     error.statusCode = 403;
     throw error;
   }
+  
+  if (!hasPermission(membership.role, 'project.read')) {
+    const error = new Error("You do not have permission to read projects");
+    error.statusCode = 403;
+    throw error;
+  }
 
   return await projectRepository.findProjectsByWorkspace(workspaceId);
 }
@@ -101,6 +101,12 @@ const getProjectById = async (projectId,userId) => {
   const membership = await workspaceMemberRepository.findMembership(project.workspaceId, userId);
   if(!membership){
     const error = new Error("You do not have access to this project");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (!hasPermission(membership.role, 'project.read')) {
+    const error = new Error("You do not have permission to read projects");
     error.statusCode = 403;
     throw error;
   }
@@ -131,11 +137,12 @@ const updateProject = async (projectId,updateData,userId) => {
     throw error;
   }
 
-  if(!UPDATE_ROLES.includes(membership.role)){
+  if(!hasPermission(membership.role, 'project.update')){
     const error = new Error("You do not have permission to update this project");
     error.statusCode = 403;
     throw error;
   }
+  
   const allowedUpdates = {};
   if (updateData.name !== undefined) {
     if (!updateData.name.trim()) {
@@ -153,7 +160,8 @@ const updateProject = async (projectId,updateData,userId) => {
     allowedUpdates.description = updateData.description.trim();
   }
 
-  if(updateData.status !== undefined){if(!["ACTIVE","INACTIVE"].includes(updateData.status)){
+  if(updateData.status !== undefined){
+    if(!["ACTIVE","INACTIVE"].includes(updateData.status)){
       const error = new Error("Invalid project status");
       error.statusCode = 400;
       throw error;
@@ -186,7 +194,7 @@ const deleteProject = async (projectId,userId) => {
     throw error;
   }
 
-  if(!DELETE_ROLES.includes(membership.role)){
+  if(!hasPermission(membership.role, 'project.delete')){
     const error = new Error("You do not have permission to delete this project");
     error.statusCode = 403;
     throw error;
@@ -197,14 +205,15 @@ const deleteProject = async (projectId,userId) => {
     id: projectId,
     name: project.name,
     description: project.description,
-    message: "Project deleted successfully" };
+    message: "Project deleted successfully" 
   };
+};
 
-  module.exports = {
-    createProject,
-    getProjectsByWorkspace,
-    getProjectById,
-    updateProject,
-    deleteProject
-  };
+module.exports = {
+  createProject,
+  getProjectsByWorkspace,
+  getProjectById,
+  updateProject,
+  deleteProject
+};
 

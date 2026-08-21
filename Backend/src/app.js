@@ -36,10 +36,34 @@ app.use(express.urlencoded({extended: true}));
 // pino http logger middleware
 app.use(pinoHttp({ logger }));
 
-// health check endpoint
-app.get('/health',(req,res) =>{
-  res.status(200).json({status: 'success', message: 'SyncSpace API is running'});
+// health check endpoints
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'success', message: 'SyncSpace API is running' });
 });
+
+app.get('/health/ready', async (req, res) => {
+  const mongoose = require('mongoose');
+  const { redisClient } = require('./config/redis');
+  
+  const dbConnected = mongoose.connection.readyState === 1;
+  const redisConnected = redisClient.isOpen;
+
+  if (dbConnected && redisConnected) {
+    return res.status(200).json({
+      status: 'ready',
+      mongodb: 'connected',
+      redis: 'connected'
+    });
+  }
+
+  return res.status(503).json({
+    status: 'unhealthy',
+    mongodb: dbConnected ? 'connected' : 'disconnected',
+    redis: redisConnected ? 'connected' : 'disconnected'
+  });
+});
+
+const reviewRoutes = require('./routes/reviewRoutes');
 
 // routes
 app.use('/api/v1/auth', authRoutes);
@@ -53,6 +77,7 @@ app.use('/api/v1/notifications', requireAuth, notificationRoutes);
 app.use('/api/v1/activities', requireAuth, activityRoutes);
 app.use('/api/v1/files', requireAuth, fileRoutes);
 app.use('/api/v1/search', requireAuth, searchRoutes);
+app.use('/api/v1', requireAuth, reviewRoutes);
 
 //404 handler 
 app.use((req,res) =>{

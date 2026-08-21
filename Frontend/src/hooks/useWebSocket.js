@@ -144,6 +144,22 @@ const useWebSocket = () => {
     []
   );
 
+  const joinWorkspace = useCallback((workspaceId) => {
+    if (!workspaceId) return;
+    return websocketClient.send({
+      type: WS_EVENT_TYPES.WORKSPACE_JOIN,
+      workspaceId
+    });
+  }, []);
+
+  const leaveWorkspace = useCallback((workspaceId) => {
+    if (!workspaceId) return;
+    return websocketClient.send({
+      type: WS_EVENT_TYPES.WORKSPACE_LEAVE,
+      workspaceId
+    });
+  }, []);
+
 
   return {
     connectionState,
@@ -158,7 +174,11 @@ const useWebSocket = () => {
 
     subscribeAll,
 
-    disconnect
+    disconnect,
+
+    joinWorkspace,
+
+    leaveWorkspace
   };
 };
 

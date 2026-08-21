@@ -5,43 +5,38 @@ export const WS_EVENT_TYPES = {
   PING: "PING",
   PONG: "PONG",
 
-  // =========================
   // Workspace
-  // =========================
-
   WORKSPACE_JOIN: "WORKSPACE_JOIN",
   WORKSPACE_LEAVE: "WORKSPACE_LEAVE",
+  WORKSPACE_MEMBER_ADDED: "WORKSPACE_MEMBER_ADDED",
+  WORKSPACE_MEMBER_UPDATED: "WORKSPACE_MEMBER_UPDATED",
+  WORKSPACE_MEMBER_REMOVED: "WORKSPACE_MEMBER_REMOVED",
 
-  // =========================
-  // Presence
-  // =========================
-
+  // Presence & Cursors
   PRESENCE_HEARTBEAT: "PRESENCE_HEARTBEAT",
   PRESENCE_SNAPSHOT: "PRESENCE_SNAPSHOT",
-
   USER_ONLINE: "USER_ONLINE",
   USER_OFFLINE: "USER_OFFLINE",
+  FILE_OPENED: "FILE_OPENED",
+  FILE_CLOSED: "FILE_CLOSED",
+  CURSOR_MOVED: "CURSOR_MOVED",
+  FILE_EDITED: "FILE_EDITED",
 
-  // =========================
-  // Tasks
-  // =========================
-
+  // Tasks & Comments & Reviews & Chat
   TASK_CREATED: "TASK_CREATED",
   TASK_UPDATED: "TASK_UPDATED",
   TASK_MOVED: "TASK_MOVED",
   TASK_DELETED: "TASK_DELETED",
 
-  // =========================
-  // Comments
-  // =========================
-
   COMMENT_CREATED: "COMMENT_CREATED",
   COMMENT_UPDATED: "COMMENT_UPDATED",
   COMMENT_DELETED: "COMMENT_DELETED",
+  CODE_COMMENT_CREATED: "CODE_COMMENT_CREATED",
 
-  // =========================
-  // Typing
-  // =========================
+  CHAT_MESSAGE_CREATED: "CHAT_MESSAGE_CREATED",
+  REVIEW_CREATED: "REVIEW_CREATED",
+  REVIEW_UPDATED: "REVIEW_UPDATED",
+  BLOCKER_CREATED: "BLOCKER_CREATED",
 
   TYPING_STARTED: "TYPING_STARTED",
   TYPING_STOPPED: "TYPING_STOPPED"

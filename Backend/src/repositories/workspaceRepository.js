@@ -1,4 +1,4 @@
-const Workspace = require("../models/Workspace.model.js");
+const Workspace = require("../models/Workspace");
 
 const createWorkspace = async (workspaceData, session = null) => {
   if (session) {

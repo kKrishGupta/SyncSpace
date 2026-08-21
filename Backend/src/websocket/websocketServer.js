@@ -572,66 +572,38 @@ const initializeWebSocketServer =
 
               /*
               |--------------------------------------------------------------------------
-              | TYPING STARTED / STOPPED
+              | FILE OPENED / CLOSED / CURSOR MOVED / FILE EDITED / TYPING
               |--------------------------------------------------------------------------
               */
 
               if (
-                context.type ===
-                  EVENT_TYPES.TYPING_STARTED ||
-                context.type ===
-                  EVENT_TYPES.TYPING_STOPPED
+                context.type === EVENT_TYPES.TYPING_STARTED ||
+                context.type === EVENT_TYPES.TYPING_STOPPED ||
+                context.type === EVENT_TYPES.FILE_OPENED ||
+                context.type === EVENT_TYPES.FILE_CLOSED ||
+                context.type === EVENT_TYPES.CURSOR_MOVED ||
+                context.type === EVENT_TYPES.FILE_EDITED
               ) {
+                const event = createEvent({
+                  type: context.type,
+                  workspaceId: context.workspaceId,
+                  projectId: context.projectId,
+                  entityId: data.entityId || data.fileId || context.taskId || null,
+                  actorId: connectionUser.id,
+                  payload: {
+                    userId: connectionUser.id,
+                    name: connectionUser.name,
+                    fileName: data.fileName,
+                    path: data.path,
+                    cursor: data.cursor,
+                    selection: data.selection,
+                    content: data.content,
+                    version: data.version
+                  }
+                });
 
-                /*
-                * IMPORTANT:
-                *
-                * actorId
-                * userId
-                * name
-                * workspaceId
-                *
-                * are all server-controlled.
-                */
-
-                const event =
-                  createEvent({
-
-                    type:
-                      context.type,
-
-                    workspaceId:
-                      context.workspaceId,
-
-                    projectId:
-                      context.projectId,
-
-                    entityId:
-                      context.taskId,
-
-                    actorId:
-                      connectionUser.id,
-
-                    payload: {
-
-                      userId:
-                        connectionUser.id,
-
-                      name:
-                        connectionUser.name
-
-                    }
-
-                  });
-
-
-                await publishApplicationEvent(
-                  event
-                );
-
-
+                await publishApplicationEvent(event);
                 return;
-
               }
 
 

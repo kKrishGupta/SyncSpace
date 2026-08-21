@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 import {
   getWorkspaces,
@@ -19,8 +20,16 @@ import {
 
 import ActivityFeed from "../components/ActivityFeed";
 
-const Dashboard = () => {
+const getGreetingTime = () => {
+  const currentHour = new Date().getHours();
+  if (currentHour >= 5 && currentHour < 12) return "Good morning";
+  if (currentHour >= 12 && currentHour < 17) return "Good afternoon";
+  if (currentHour >= 17 && currentHour < 21) return "Good evening";
+  return "Good night";
+};
 
+const Dashboard = () => {
+  const { user } = useAuth();
   const [workspaces, setWorkspaces] = useState([]);
   const [projects, setProjects] = useState([]);
 
@@ -163,7 +172,7 @@ const Dashboard = () => {
           </div>
 
           <h1>
-            Good morning, Krish 👋
+            {getGreetingTime()}, {user?.name?.split(' ')[0] || 'there'} 👋
           </h1>
 
           <p>
@@ -284,7 +293,7 @@ const Dashboard = () => {
                     </div>
                     <h3>{project.name}</h3>
                     <p>{project.description || "No description provided."}</p>
-                    <Link to={`/workspaces/${selectedWorkspace._id}/projects/${project._id}`} className="mt-4 text-indigo-600 text-sm hover:underline block">
+                    <Link to={`/projects/${project._id}`} className="mt-4 text-indigo-600 text-sm hover:underline block">
                       Go to Project &rarr;
                     </Link>
                   </div>

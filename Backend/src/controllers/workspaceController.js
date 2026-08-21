@@ -1,7 +1,7 @@
 const workspaceService = require('../services/workspaceService');
 const logger = require('../utils/logger');
 const User = require('../models/User');
-const WorkspaceMember = require('../models/WorkspaceMember.model.js');
+const WorkspaceMember = require('../models/WorkspaceMember');
 const notificationService = require('../services/notificationService');
 
 const createWorkspace = async (req, res, next) => {
@@ -99,21 +99,29 @@ const inviteMember = async (req, res, next) => {
     }
 
     // Check if already a member
-    const existingMembership = await WorkspaceMember.findOne({
+    let existingMembership = await WorkspaceMember.findOne({
       workspaceId,
-      userId: userToInvite._id,
-      status: 'ACTIVE'
+      userId: userToInvite._id
     });
+
+    let newMember;
 
     if (existingMembership) {
-      return res.status(400).json({ status: 'error', message: 'User is already a member of this workspace' });
+      if (existingMembership.status === 'ACTIVE') {
+        return res.status(400).json({ status: 'error', message: 'User is already a member of this workspace' });
+      } else {
+        // Reactivate inactive member
+        existingMembership.status = 'ACTIVE';
+        existingMembership.role = 'MEMBER';
+        newMember = await existingMembership.save();
+      }
+    } else {
+      newMember = await WorkspaceMember.create({
+        workspaceId,
+        userId: userToInvite._id,
+        role: 'MEMBER'
+      });
     }
-
-    const newMember = await WorkspaceMember.create({
-      workspaceId,
-      userId: userToInvite._id,
-      role: 'MEMBER'
-    });
 
     // Notify the user
     await notificationService.createNotification({
@@ -124,6 +132,25 @@ const inviteMember = async (req, res, next) => {
       entityType: 'Workspace',
       message: `invited you to the workspace ${workspace.name}`
     });
+
+    // Notify websocket
+    const { publishApplicationEvent } = require('../websocket/eventPublisher');
+    const EVENT_TYPES = require('../websocket/eventTypes');
+    const { createEvent } = require('../websocket/eventFactory');
+    
+    const event = createEvent({
+      type: EVENT_TYPES.WORKSPACE_MEMBER_ADDED,
+      workspaceId,
+      actorId: req.user.id,
+      payload: { 
+        userId: userToInvite._id,
+        name: userToInvite.name,
+        email: userToInvite.email,
+        role: 'MEMBER'
+      }
+    });
+    
+    try { await publishApplicationEvent(event); } catch(e) {}
 
     return res.status(200).json({
       success: true,
@@ -158,11 +185,82 @@ const getMembers = async (req, res, next) => {
   }
 };
 
+const updateMemberRole = async (req, res, next) => {
+  try {
+    const { id: workspaceId, userId } = req.params;
+    const { role } = req.body;
+
+    if (!role || !['OWNER', 'ADMIN', 'MANAGER', 'MEMBER', 'VIEWER'].includes(role)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid role provided' });
+    }
+
+    const membership = await WorkspaceMember.findOne({ workspaceId, userId, status: 'ACTIVE' });
+    if (!membership) {
+      return res.status(404).json({ status: 'error', message: 'Member not found in workspace' });
+    }
+
+    membership.role = role;
+    await membership.save();
+
+    const { publishApplicationEvent } = require('../websocket/eventPublisher');
+    const EVENT_TYPES = require('../websocket/eventTypes');
+    const { createEvent } = require('../websocket/eventFactory');
+    
+    const event = createEvent({
+      type: EVENT_TYPES.WORKSPACE_MEMBER_UPDATED,
+      workspaceId,
+      actorId: req.user.id,
+      payload: { userId, role }
+    });
+    
+    try { await publishApplicationEvent(event); } catch(e) {}
+
+    return res.status(200).json({ success: true, message: 'Role updated successfully', data: membership });
+  } catch (error) {
+    logger.error(error);
+    next(error);
+  }
+};
+
+const removeMember = async (req, res, next) => {
+  try {
+    const { id: workspaceId, userId } = req.params;
+
+    const membership = await WorkspaceMember.findOne({ workspaceId, userId, status: 'ACTIVE' });
+    if (!membership) {
+      return res.status(404).json({ status: 'error', message: 'Member not found in workspace' });
+    }
+    
+    membership.status = 'INACTIVE';
+    await membership.save();
+    
+    const { publishApplicationEvent } = require('../websocket/eventPublisher');
+    const EVENT_TYPES = require('../websocket/eventTypes');
+    const { createEvent } = require('../websocket/eventFactory');
+    
+    const event = createEvent({
+      type: EVENT_TYPES.WORKSPACE_MEMBER_REMOVED,
+      workspaceId,
+      actorId: req.user.id,
+      payload: { userId }
+    });
+    
+    try { await publishApplicationEvent(event); } catch(e) {}
+
+    return res.status(200).json({ success: true, message: 'Member removed successfully' });
+  } catch (error) {
+    logger.error(error);
+    next(error);
+  }
+};
+
 module.exports = {
   createWorkspace,
   getWorkspaces,
   getWorkspace,
   updateWorkspace,
   inviteMember,
-  getMembers
+  getMembers,
+  updateMemberRole,
+  removeMember
 };

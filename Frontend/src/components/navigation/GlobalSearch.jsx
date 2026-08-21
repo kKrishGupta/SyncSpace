@@ -46,7 +46,7 @@ const GlobalSearch = ({ workspaceId }) => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md px-3 py-1.5 w-64 md:w-96 focus-within:ring-2 ring-indigo-500">
+      <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-md px-3 py-1.5 w-36 sm:w-64 md:w-96 focus-within:ring-2 ring-indigo-500">
         <Search className="w-4 h-4 text-gray-400 mr-2" />
         <input
           type="text"
@@ -74,7 +74,7 @@ const GlobalSearch = ({ workspaceId }) => {
                   <div className="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tasks</div>
                   {results.tasks.map(task => (
                     <div key={task._id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                         onClick={() => { setIsOpen(false); navigate(`/workspaces/${workspaceId}/projects/${task.projectId}`); }}>
+                         onClick={() => { setIsOpen(false); navigate(`/projects/${task.projectId}`); }}>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{task.title}</p>
                       <p className="text-xs text-gray-500">{task.status}</p>
                     </div>
@@ -86,7 +86,7 @@ const GlobalSearch = ({ workspaceId }) => {
                   <div className="px-4 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Projects</div>
                   {results.projects.map(proj => (
                     <div key={proj._id} className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                         onClick={() => { setIsOpen(false); navigate(`/workspaces/${workspaceId}/projects/${proj._id}`); }}>
+                         onClick={() => { setIsOpen(false); navigate(`/projects/${proj._id}`); }}>
                       <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{proj.name}</p>
                       <p className="text-xs text-gray-500">{proj.key}</p>
                     </div>

@@ -1,3 +1,5 @@
+import websocketClient from '../websocket/websocketClient';
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
   
@@ -75,6 +77,9 @@ const apiClient = async (
              const { accessToken, refreshToken: newRefreshToken } = refreshData.data;
              localStorage.setItem('accessToken', accessToken);
              localStorage.setItem('refreshToken', newRefreshToken);
+             
+             websocketClient.disconnect();
+             websocketClient.connect(accessToken);
              
              isRefreshing = false;
              processQueue(null, accessToken);

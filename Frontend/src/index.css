@@ -2006,6 +2006,13 @@ a {
   margin-top: 32px;
 }
 
+@media (max-width: 800px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 .settings-sidebar nav {
   display: flex;
   flex-direction: column;
@@ -2176,7 +2183,7 @@ a {
 }
 
 .user-menu:hover {
-  background: var(--bg-hover);
+  background: #1e232d;
 }
 
 .user-dropdown {
@@ -2184,14 +2191,14 @@ a {
   top: calc(100% + 8px);
   right: 0;
   width: 200px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: #12161c;
+  border: 1px solid #242a33;
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   padding: 8px;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .dropdown-item {
@@ -2201,7 +2208,7 @@ a {
   padding: 10px 12px;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: #f3f4f6;
   font-size: 14px;
   text-align: left;
   border-radius: 6px;
@@ -2211,7 +2218,7 @@ a {
 }
 
 .dropdown-item:hover {
-  background: var(--bg-hover);
+  background: #1e232d;
 }
 
 .dropdown-item.text-red {
@@ -2224,7 +2231,134 @@ a {
 
 .dropdown-divider {
   height: 1px;
-  background: var(--border);
+  background: #242a33;
   margin: 8px 0;
+}
+
+/* =========================================
+   MEMBER ROW ACTIONS
+========================================= */
+
+.member-row:hover {
+  background: #171c23 !important;
+  border-color: #343c48 !important;
+}
+
+.role-select:hover {
+  background: #171c23 !important;
+  color: #f3f4f6 !important;
+}
+
+.member-action-btn:hover {
+  background: #171c23 !important;
+  color: #f3f4f6 !important;
+}
+
+.member-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* =========================================
+   MEMBER ROW RESPONSIVE
+========================================= */
+
+.members-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.members-toolbar-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.member-row-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #12161c;
+  border-radius: 8px;
+  border: 1px solid #242a33;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.member-row-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.member-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.member-presence {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 80px;
+}
+
+.member-action-wrap {
+  width: 32px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.workspace-members {
+  container-type: inline-size;
+}
+
+@container (max-width: 550px) {
+  .members-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .members-header-row .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .members-toolbar-row {
+    flex-direction: column;
+  }
+  .members-toolbar-row select {
+    width: 100% !important;
+  }
+  
+  .member-row-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .member-row-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    background: #0e1116;
+    padding: 12px;
+    border-radius: 6px;
+  }
+  
+  .member-presence, .member-action-wrap {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+  
+  .role-select {
+    width: 100% !important;
+    background: #12161c !important;
+    border: 1px solid #242a33 !important;
+  }
 }
 

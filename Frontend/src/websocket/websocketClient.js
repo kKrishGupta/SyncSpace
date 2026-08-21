@@ -83,9 +83,11 @@ class WebSocketClient {
     };
 
 
-    this.socket.onclose = () => {
+    this.socket.onclose = (event) => {
       console.log(
-        "WebSocket disconnected"
+        "WebSocket disconnected:",
+        event?.code,
+        event?.reason || ""
       );
 
       this.socket = null;
@@ -93,6 +95,14 @@ class WebSocketClient {
       this.notifyConnectionListeners(
         "disconnected"
       );
+
+      // Stop infinite reconnect loops on authentication failure (Code 1008)
+      if (event && (event.code === 1008 || event.code === 4001)) {
+        console.warn("WebSocket authentication failed. Halting reconnect until new token issued.");
+        this.shouldReconnect = false;
+        window.dispatchEvent(new Event('auth:ws_auth_error'));
+        return;
+      }
 
       if (this.shouldReconnect) {
         this.reconnect();

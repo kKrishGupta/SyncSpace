@@ -32,7 +32,7 @@ const Topbar = ({ onMenuClick }) => {
       </div>
 
 
-      <div className="topbar-right flex items-center gap-4">
+      <div className="topbar-right flex items-center gap-2 sm:gap-4">
 
         {/* Search */}
         <GlobalSearch workspaceId={workspaceId} />

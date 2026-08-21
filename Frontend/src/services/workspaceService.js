@@ -44,3 +44,18 @@ export const inviteMember = async (id, email) => {
   });
   return response;
 };
+
+export const updateMemberRole = async (workspaceId, userId, role) => {
+  const response = await apiClient(`/workspaces/${workspaceId}/members/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
+  return response;
+};
+
+export const removeWorkspaceMember = async (workspaceId, userId) => {
+  const response = await apiClient(`/workspaces/${workspaceId}/members/${userId}`, {
+    method: "DELETE",
+  });
+  return response;
+};
